@@ -11,6 +11,15 @@ conn_str = (
 con = pyodbc.connect(conn_str)
 
 app = Flask(__name__)
+from flask import Flask, request, jsonify, render_template
+# ... (kết nối DB như trước)
+
+app = Flask(__name__, static_folder='static', template_folder='templates')
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
 
 # Hàm tiện ích: truy vấn và trả về JSON
 def fetch_all(table):
