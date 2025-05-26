@@ -1,25 +1,18 @@
 from flask import Flask, request, jsonify
 import pyodbc
+from flask_cors import CORS
 
 # Cấu hình kết nối đến SQL Server
 conn_str = (
     "Driver={ODBC Driver 17 for SQL Server};"
-    "Server=DESKTOP-5491VFA;" 
+    "Server=DESKTOP-5491VFA;"
     "Database=K22CNT2_TTCD_Project4;"
     "Trusted_Connection=yes;"
 )
 con = pyodbc.connect(conn_str)
 
 app = Flask(__name__)
-from flask import Flask, request, jsonify, render_template
-# ... (kết nối DB như trước)
-
-app = Flask(__name__, static_folder='static', template_folder='templates')
-
-@app.route('/')
-def home():
-    return render_template('index.html')
-
+CORS(app)
 
 # Hàm tiện ích: truy vấn và trả về JSON
 def fetch_all(table):
@@ -47,7 +40,6 @@ def add_quantri():
         tt = data.get('Trang_thai')
         cursor = con.cursor()
         sql = "INSERT INTO QuanTri (id_quan_tri, Tai_khoan, Mat_khau, Trang_thai) VALUES (?, ?, ?, ?)"
-        # id_quan_tri có thể điều chỉnh tự động nếu có SEQUENCE/IDENTITY
         cursor.execute(sql, (data.get('id_quan_tri'), tk, mk, tt))
         con.commit()
         cursor.close()
@@ -76,7 +68,7 @@ def add_danhmuc():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 3. SẢN PHẨM
+# 3. SẢN PHẨM (Cập nhật để hỗ trợ upload ảnh)
 @app.route('/sanpham', methods=['GET'])
 def get_sanpham():
     try:
@@ -87,17 +79,93 @@ def get_sanpham():
 @app.route('/sanpham', methods=['POST'])
 def add_sanpham():
     try:
-        data = request.get_json()
+        data = request.form.to_dict()  # Lấy dữ liệu form
         cursor = con.cursor()
+
+        # Xử lý upload ảnh nếu có
+        if 'hinh_anh' in request.files:
+            file = request.files['hinh_anh']
+            if file.filename != '':
+                # Lưu ảnh vào thư mục tĩnh (ví dụ: D:\ProJect4\xulyapi\images)
+                import os
+                upload_folder = os.path.join(os.path.dirname(__file__), 'images')
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                file_path = os.path.join(upload_folder, file.filename)
+                file.save(file_path)
+                data['hinh_anh'] = f'/images/{file.filename}'  # Lưu đường dẫn tương đối
+
+        # Thêm sản phẩm vào cơ sở dữ liệu
         sql = ("INSERT INTO SanPham (id_san_pham, ten_san_pham, gia, so_luong, hinh_anh, id_danh_muc) "
                "VALUES (?, ?, ?, ?, ?, ?)")
         cursor.execute(sql, (
-            data.get('id_san_pham'), data.get('ten_san_pham'), data.get('gia'),
-            data.get('so_luong'), data.get('hinh_anh'), data.get('id_danh_muc')
+            data.get('id_san_pham'),
+            data.get('ten_san_pham'),
+            float(data.get('gia', 0)),  # Chuyển đổi giá thành số
+            int(data.get('so_luong', 0)),  # Chuyển đổi số lượng thành số
+            data.get('hinh_anh', ''),  # Đường dẫn ảnh, rỗng nếu không upload
+            data.get('id_danh_muc')
         ))
         con.commit()
         cursor.close()
-        return jsonify({'message': 'Thêm sản phẩm thành công'})
+        return jsonify({'message': 'Thêm sản phẩm thành công', 'hinh_anh': data.get('hinh_anh')})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/sanpham/<int:id>', methods=['PUT'])
+def update_sanpham(id):
+    try:
+        data = request.form.to_dict()  # Lấy dữ liệu form
+        cursor = con.cursor()
+
+        # Xử lý upload ảnh nếu có
+        hinh_anh = None
+        if 'hinh_anh' in request.files:
+            file = request.files['hinh_anh']
+            if file.filename != '':
+                import os
+                upload_folder = os.path.join(os.path.dirname(__file__), 'images')
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                file_path = os.path.join(upload_folder, file.filename)
+                file.save(file_path)
+                hinh_anh = f'/images/{file.filename}'
+
+        # Cập nhật sản phẩm
+        sql = ("UPDATE SanPham SET ten_san_pham = ?, gia = ?, so_luong = ?, hinh_anh = ?, id_danh_muc = ? "
+               "WHERE id_san_pham = ?")
+        cursor.execute(sql, (
+            data.get('ten_san_pham'),
+            float(data.get('gia', 0)),
+            int(data.get('so_luong', 0)),
+            hinh_anh if hinh_anh else data.get('hinh_anh'),
+            data.get('id_danh_muc'),
+            id
+        ))
+        con.commit()
+        cursor.close()
+        return jsonify({'message': 'Cập nhật sản phẩm thành công'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/sanpham/<int:id>', methods=['DELETE'])
+def delete_sanpham(id):
+    try:
+        cursor = con.cursor()
+        # Lấy đường dẫn ảnh trước khi xóa
+        cursor.execute("SELECT hinh_anh FROM SanPham WHERE id_san_pham = ?", (id,))
+        result = cursor.fetchone()
+        if result and result[0]:
+            import os
+            image_path = os.path.join(os.path.dirname(__file__), 'images', os.path.basename(result[0]))
+            if os.path.exists(image_path):
+                os.remove(image_path)  # Xóa ảnh
+
+        # Xóa sản phẩm
+        cursor.execute("DELETE FROM SanPham WHERE id_san_pham = ?", (id,))
+        con.commit()
+        cursor.close()
+        return jsonify({'message': 'Xóa sản phẩm thành công'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -115,10 +183,14 @@ def add_khachhang():
         data = request.get_json()
         cursor = con.cursor()
         sql = ("INSERT INTO KhachHang (id_khach_hang, ten_khach_hang, so_dien_thoai, email, dia_chi, ngay_tao) "
-               "VALUES (?, ?, ?, ?, ?, ?)" )
+               "VALUES (?, ?, ?, ?, ?, ?)")
         cursor.execute(sql, (
-            data.get('id_khach_hang'), data.get('ten_khach_hang'), data.get('so_dien_thoai'),
-            data.get('email'), data.get('dia_chi'), data.get('ngay_tao')
+            data.get('id_khach_hang'),
+            data.get('ten_khach_hang'),
+            data.get('so_dien_thoai'),
+            data.get('email'),
+            data.get('dia_chi'),
+            data.get('ngay_tao')
         ))
         con.commit()
         cursor.close()
@@ -142,8 +214,11 @@ def add_giohang():
         sql = ("INSERT INTO GioHang (id_gio_hang, id_khach_hang, id_san_pham, so_luong, ngay_them) "
                "VALUES (?, ?, ?, ?, ?)")
         cursor.execute(sql, (
-            data.get('id_gio_hang'), data.get('id_khach_hang'), data.get('id_san_pham'),
-            data.get('so_luong'), data.get('ngay_them')
+            data.get('id_gio_hang'),
+            data.get('id_khach_hang'),
+            data.get('id_san_pham'),
+            data.get('so_luong'),
+            data.get('ngay_them')
         ))
         con.commit()
         cursor.close()
@@ -167,12 +242,46 @@ def add_donhang():
         sql = ("INSERT INTO DonHang (id_don_hang, ngay_dat, id_khach_hang, tong_tien, trang_thai) "
                "VALUES (?, ?, ?, ?, ?)")
         cursor.execute(sql, (
-            data.get('id_don_hang'), data.get('ngay_dat'), data.get('id_khach_hang'),
-            data.get('tong_tien'), data.get('trang_thai')
+            data.get('id_don_hang'),
+            data.get('ngay_dat'),
+            data.get('id_khach_hang'),
+            data.get('tong_tien'),
+            data.get('trang_thai')
         ))
         con.commit()
         cursor.close()
         return jsonify({'message': 'Thêm đơn hàng thành công'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/donhang/<int:id>', methods=['PUT'])
+def update_donhang(id):
+    try:
+        data = request.get_json()
+        cursor = con.cursor()
+        sql = ("UPDATE DonHang SET ngay_dat = ?, id_khach_hang = ?, tong_tien = ?, trang_thai = ? "
+               "WHERE id_don_hang = ?")
+        cursor.execute(sql, (
+            data.get('ngay_dat'),
+            data.get('id_khach_hang'),
+            data.get('tong_tien'),
+            data.get('trang_thai'),
+            id
+        ))
+        con.commit()
+        cursor.close()
+        return jsonify({'message': 'Cập nhật đơn hàng thành công'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/donhang/<int:id>', methods=['DELETE'])
+def delete_donhang(id):
+    try:
+        cursor = con.cursor()
+        cursor.execute("DELETE FROM DonHang WHERE id_don_hang = ?", (id,))
+        con.commit()
+        cursor.close()
+        return jsonify({'message': 'Xóa đơn hàng thành công'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -192,8 +301,13 @@ def add_thanhtoan():
         sql = ("INSERT INTO ThanhToan (id_thanh_toan, id_don_hang, id_khach_hang, tong_tien, phuong_thuc, trang_thai, thoi_gian) "
                "VALUES (?, ?, ?, ?, ?, ?, ?)")
         cursor.execute(sql, (
-            data.get('id_thanh_toan'), data.get('id_don_hang'), data.get('id_khach_hang'),
-            data.get('tong_tien'), data.get('phuong_thuc'), data.get('trang_thai'), data.get('thoi_gian')
+            data.get('id_thanh_toan'),
+            data.get('id_don_hang'),
+            data.get('id_khach_hang'),
+            data.get('tong_tien'),
+            data.get('phuong_thuc'),
+            data.get('trang_thai'),
+            data.get('thoi_gian')
         ))
         con.commit()
         cursor.close()
@@ -217,8 +331,11 @@ def add_chitiet():
         sql = ("INSERT INTO ChiTietDonHang (id_chi_tiet, id_don_hang, id_san_pham, so_luong, don_gia) "
                "VALUES (?, ?, ?, ?, ?)")
         cursor.execute(sql, (
-            data.get('id_chi_tiet'), data.get('id_don_hang'), data.get('id_san_pham'),
-            data.get('so_luong'), data.get('don_gia')
+            data.get('id_chi_tiet'),
+            data.get('id_don_hang'),
+            data.get('id_san_pham'),
+            data.get('so_luong'),
+            data.get('don_gia')
         ))
         con.commit()
         cursor.close()
@@ -226,7 +343,7 @@ def add_chitiet():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 9. NHÂN VIÊN (mở rộng)
+# 9. NHÂN VIÊN
 @app.route('/nhanvien', methods=['GET'])
 def get_nhanvien():
     try:
@@ -242,8 +359,10 @@ def add_nhanvien():
         sql = ("INSERT INTO NhanVien (id_nhan_vien, ten_nhan_vien, so_dien_thoai, chuc_vu) "
                "VALUES (?, ?, ?, ?)")
         cursor.execute(sql, (
-            data.get('id_nhan_vien'), data.get('ten_nhan_vien'),
-            data.get('so_dien_thoai'), data.get('chuc_vu')
+            data.get('id_nhan_vien'),
+            data.get('ten_nhan_vien'),
+            data.get('so_dien_thoai'),
+            data.get('chuc_vu')
         ))
         con.commit()
         cursor.close()
@@ -259,12 +378,25 @@ def update_nhanvien(id_nv):
         sql = ("UPDATE NhanVien SET ten_nhan_vien = ?, so_dien_thoai = ?, chuc_vu = ? "
                "WHERE id_nhan_vien = ?")
         cursor.execute(sql, (
-            data.get('ten_nhan_vien'), data.get('so_dien_thoai'),
-            data.get('chuc_vu'), id_nv
+            data.get('ten_nhan_vien'),
+            data.get('so_dien_thoai'),
+            data.get('chuc_vu'),
+            id_nv
         ))
         con.commit()
         cursor.close()
         return jsonify({'message': 'Cập nhật nhân viên thành công'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/nhanvien/<int:id_nv>', methods=['DELETE'])
+def delete_nhanvien(id_nv):
+    try:
+        cursor = con.cursor()
+        cursor.execute("DELETE FROM NhanVien WHERE id_nhan_vien = ?", (id_nv,))
+        con.commit()
+        cursor.close()
+        return jsonify({'message': 'Xóa nhân viên thành công'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

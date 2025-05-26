@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Shop - Quản trị</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header -->
+    <header class="bg-black text-white">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Fashion Shop - Quản trị</h1>
+            <nav class="space-x-4">
+                <a href="admin-products.html" class="text-white hover:text-gray-200">Sản phẩm</a>
+                <a href="admin.html" class="text-white hover:text-gray-200">Đơn hàng</a>
+                <a href="#" class="text-white hover:text-gray-200">Khách hàng</a>
+                <a href="#" class="text-white hover:text-gray-200">Nhân viên</a>
+            </nav>
+            <div>
+                <a href="xulyfontend/index.html" class="text-white hover:text-gray-200">Về trang chủ</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <section class="container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-center mb-8">Tổng quan</h2>
+
+        <!-- Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white shadow-md rounded-lg p-6 text-center" id="totalProducts">
+                <h3 class="text-xl font-semibold mb-2">Tổng sản phẩm</h3>
+                <p class="text-3xl">0</p>
+            </div>
+            <div class="bg-white shadow-md rounded-lg p-6 text-center" id="totalOrders">
+                <h3 class="text-xl font-semibold mb-2">Tổng đơn hàng</h3>
+                <p class="text-3xl">0</p>
+            </div>
+            <div class="bg-white shadow-md rounded-lg p-6 text-center" id="totalCustomers">
+                <h3 class="text-xl font-semibold mb-2">Tổng khách hàng</h3>
+                <p class="text-3xl">0</p>
+            </div>
+            <div class="bg-white shadow-md rounded-lg p-6 text-center" id="totalRevenue">
+                <h3 class="text-xl font-semibold mb-2">Doanh thu</h3>
+                <p class="text-3xl">0</p>
+            </div>
+        </div>
+
+        <!-- Latest Orders -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">Đơn hàng mới nhất</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="py-3 px-4">Mã đơn</th>
+                            <th class="py-3 px-4">Ngày đặt</th>
+                            <th class="py-3 px-4">Khách hàng</th>
+                            <th class="py-3 px-4">Tổng tiền</th>
+                            <th class="py-3 px-4">Trạng thái</th>
+                            <th class="py-3 px-4">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                        <!-- Orders will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-4 mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2023 DTN Shop. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Fetch overview stats
+        async function fetchOverview() {
+            const productsResponse = await fetch('http://localhost:5000/sanpham');
+            const products = await productsResponse.json();
+            document.getElementById('totalProducts').innerHTML = `<h3 class="text-xl font-semibold mb-2">Tổng sản phẩm</h3><p class="text-3xl">${products.length}</p>`;
+
+            const ordersResponse = await fetch('http://localhost:5000/donhang');
+            const orders = await ordersResponse.json();
+            document.getElementById('totalOrders').innerHTML = `<h3 class="text-xl font-semibold mb-2">Tổng đơn hàng</h3><p class="text-3xl">${orders.length}</p>`;
+
+            const customersResponse = await fetch('http://localhost:5000/khachhang');
+            const customers = await customersResponse.json();
+            document.getElementById('totalCustomers').innerHTML = `<h3 class="text-xl font-semibold mb-2">Tổng khách hàng</h3><p class="text-3xl">${customers.length}</p>`;
+
+            const revenue = orders.reduce((sum, order) => sum + order.tong_tien, 0);
+            document.getElementById('totalRevenue').innerHTML = `<h3 class="text-xl font-semibold mb-2">Doanh thu</h3><p class="text-3xl">${revenue.toLocaleString('vi-VN')} VNĐ</p>`;
+        }
+
+        // Fetch and display latest orders
+        async function fetchOrders() {
+            const response = await fetch('http://localhost:5000/donhang');
+            const orders = await response.json();
+            const customersResponse = await fetch('http://localhost:5000/khachhang');
+            const customers = await customersResponse.json();
+            const customerMap = customers.reduce((map, cust) => {
+                map[cust.id_khach_hang] = cust.ten_khach_hang;
+                return map;
+            }, {});
+
+            const tableBody = document.getElementById('orderTableBody');
+            tableBody.innerHTML = '';
+            orders.sort((a, b) => new Date(b.ngay_dat) - new Date(a.ngay_dat)).slice(0, 5).forEach(order => {
+                const row = `
+                    <tr class="border-b">
+                        <td class="py-3 px-4">${order.id_don_hang}</td>
+                        <td class="py-3 px-4">${new Date(order.ngay_dat).toLocaleString('vi-VN')}</td>
+                        <td class="py-3 px-4">${customerMap[order.id_khach_hang] || 'N/A'}</td>
+                        <td class="py-3 px-4">${order.tong_tien.toLocaleString('vi-VN')} VNĐ</td>
+                        <td class="py-3 px-4">${order.trang_thai}</td>
+                        <td class="py-3 px-4">
+                            <button class="edit-order-btn text-blue-500 hover:text-blue-700 mr-2" data-id="${order.id_don_hang}">Sửa</button>
+                            <button class="delete-order-btn text-red-500 hover:text-red-700" data-id="${order.id_don_hang}">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            // Add event listeners for edit and delete
+            document.querySelectorAll('.edit-order-btn').forEach(btn => {
+                btn.addEventListener('click', editOrder);
+            });
+            document.querySelectorAll('.delete-order-btn').forEach(btn => {
+                btn.addEventListener('click', deleteOrder);
+            });
+        }
+
+        // Edit order (placeholder, needs form)
+        async function editOrder(e) {
+            const id = e.target.getAttribute('data-id');
+            const response = await fetch(`http://localhost:5000/donhang/${id}`);
+            const order = await response.json();
+            if (order) {
+                alert(`Chỉnh sửa đơn hàng ${order.id_don_hang}. Thêm form chỉnh sửa nếu cần.`);
+                // Add form logic here if desired
+            }
+        }
+
+        // Delete order
+        async function deleteOrder(e) {
+            if (confirm('Bạn có chắc muốn xóa đơn hàng này?')) {
+                const id = e.target.getAttribute('data-id');
+                const response = await fetch(`http://localhost:5000/donhang/${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                alert(data.message);
+                if (response.ok) location.reload();
+            }
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchOverview();
+            await fetchOrders();
+        });
+    </script>
+</body>
+</html>

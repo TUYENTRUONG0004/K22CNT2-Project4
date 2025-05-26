@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTN Shop - Giỏ hàng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header -->
+    <header class="bg-black text-white">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">DTN Shop</h1>
+            <nav class="space-x-4">
+                <a href="index.html" class="text-white hover:text-gray-200">Trang chủ</a>
+                <a href="products.html" class="text-white hover:text-gray-200">Sản phẩm</a>
+                <a href="cart.html" class="text-white hover:text-gray-200">Giỏ hàng</a>
+            </nav>
+            <div class="space-x-4">
+                <a href="#" class="text-white hover:text-gray-200">Đăng nhập</a>
+                <a href="admin-products.html" class="text-white hover:text-gray-200">Quản trị</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <section class="container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold mb-6">Giỏ hàng của bạn</h2>
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <table class="w-full text-left">
+                <thead>
+                    <tr>
+                        <th class="p-2">Sản phẩm</th>
+                        <th class="p-2">Hình ảnh</th>
+                        <th class="p-2">Giá</th>
+                        <th class="p-2">Số lượng</th>
+                        <th class="p-2">Tổng</th>
+                        <th class="p-2">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="cartItems">
+                    <!-- Sản phẩm trong giỏ hàng sẽ được thêm bằng JavaScript -->
+                </tbody>
+            </table>
+            <div class="mt-4 flex justify-between items-center">
+                <h3 class="text-xl font-semibold">Tổng cộng: <span id="totalPrice">0 VNĐ</span></h3>
+                <a href="checkout.html" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Thanh toán</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-4 mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 DTN Shop. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        let cartItems = [];
+        let products = [];
+
+        async function fetchData() {
+            try {
+                const cartResponse = await fetch('http://127.0.0.1:5000/giohang');
+                if (!cartResponse.ok) throw new Error('Không thể lấy dữ liệu giỏ hàng');
+                cartItems = await cartResponse.json();
+
+                const productResponse = await fetch('http://127.0.0.1:5000/sanpham');
+                if (!productResponse.ok) throw new Error('Không thể lấy dữ liệu sản phẩm');
+                products = await productResponse.json();
+
+                displayCart();
+            } catch (error) {
+                console.error('Lỗi:', error);
+                document.getElementById('cartItems').innerHTML = '<tr><td colspan="6" class="text-center text-red-500">Lỗi khi tải giỏ hàng.</td></tr>';
+            }
+        }
+
+        function displayCart() {
+            const cartItemsDiv = document.getElementById('cartItems');
+            cartItemsDiv.innerHTML = '';
+            let totalPrice = 0;
+
+            cartItems.forEach(item => {
+                const product = products.find(p => p.id_san_pham === item.id_san_pham);
+                if (product) {
+                    const itemTotal = product.gia * item.so_luong;
+                    totalPrice += itemTotal;
+                    const row = `
+                        <tr>
+                            <td class="p-2">${product.ten_san_pham}</td>
+                            <td class="p-2"><img src="${product.hinh_anh || '/images/default.jpg'}" alt="${product.ten_san_pham}" class="w-16 h-16 object-cover"></td>
+                            <td class="p-2">${product.gia.toLocaleString('vi-VN')} VNĐ</td>
+                            <td class="p-2">${item.so_luong}</td>
+                            <td class="p-2">${itemTotal.toLocaleString('vi-VN')} VNĐ</td>
+                            <td class="p-2">
+                                <button class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600" onclick="removeFromCart(${item.id_gio_hang})">Xóa</button>
+                            </td>
+                        </tr>
+                    `;
+                    cartItemsDiv.innerHTML += row;
+                }
+            });
+
+            document.getElementById('totalPrice').textContent = `${totalPrice.toLocaleString('vi-VN')} VNĐ`;
+        }
+
+        async function removeFromCart(cartId) {
+            if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                try {
+                    // Hiện tại chưa có API DELETE, dùng localStorage hoặc mock
+                    cartItems = cartItems.filter(item => item.id_gio_hang !== cartId);
+                    displayCart();
+                    alert('Xóa sản phẩm khỏi giỏ hàng thành công');
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Có lỗi xảy ra khi xóa sản phẩm');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchData);
+    </script>
+</body>
+</html>
