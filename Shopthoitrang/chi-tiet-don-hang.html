@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết sản phẩm - DTN Shop</title>
+    <link rel="stylesheet" href="/Shopthoitrang/css/chi-tiet-san-pham.css">
+    <style>
+        .ctsp-anh img { width: 100%; max-width: 300px; height: auto; }
+        .ctsp-thong-tin { margin-top: 20px; }
+        .ctsp-gia { font-size: 1.5em; color: #e74c3c; }
+        .ctsp-mo-ta { margin: 10px 0; }
+        .ctsp-btn button { background-color: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; }
+        .ctsp-btn button:hover { background-color: #0056b3; }
+        #toast { position: fixed; bottom: 20px; right: 20px; background-color: #333; color: white; padding: 10px 20px; display: none; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHOP QUẦN ÁO ONLINE</h1>
+        <nav>
+            <a href="/Shopthoitrang/trang-chu.html">Trang chủ</a> |
+            <a href="/Shopthoitrang/gio-hang.html">Giỏ hàng</a> |
+            <a href="/Shopthoitrang/chi-tiet-san-pham.html">Lịch sử đơn hàng</a>
+        </nav>
+    </header>
+    <main>
+        <div id="chi-tiet-san-pham"></div>
+    </main>
+    <div id="toast"></div>
+    <script>
+
+        async function getDanhSachSanPham() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/sanpham');
+                if (!response.ok) throw new Error('Lỗi khi lấy danh sách sản phẩm');
+                const data = await response.json();
+                return data.length > 0 ? data : danhSachSanPhamTinh;
+            } catch (error) {
+                console.error('Lỗi API getDanhSachSanPham:', error);
+                return danhSachSanPhamTinh;
+            }
+        }
+
+        function getGioHang() {
+            return JSON.parse(localStorage.getItem('gioHang') || '[]');
+        }
+
+        function setGioHang(gio) {
+            localStorage.setItem('gioHang', JSON.stringify(gio));
+        }
+
+        function dinhDangGia(gia) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(gia);
+        }
+
+        // Mã từ chi-tiet-san-pham.js
+        let dsSanPham = [];
+
+        async function fetchSanPham() {
+            dsSanPham = await getDanhSachSanPham();
+        }
+
+        function getIdSanPham() {
+            const params = new URLSearchParams(window.location.search);
+            return parseInt(params.get('id'), 10);
+        }
+
+        function hienThiChiTietSanPham() {
+            const id = getIdSanPham();
+            const sp = dsSanPham.find(x => x.id_san_pham === id);
+            const container = document.getElementById('chi-tiet-san-pham');
+            if (!sp) {
+                container.innerHTML = `<div style="padding:32px;text-align:center;color:#d76d77;font-weight:bold;">Không tìm thấy sản phẩm!</div>`;
+                return;
+            }
+            container.innerHTML = `
+                <div class="ctsp-anh">
+                    <img src="${sp.hinh_anh}" alt="${sp.ten_san_pham}">
+                </div>
+                <div class="ctsp-thong-tin">
+                    <h2>${sp.ten_san_pham}</h2>
+                    <div class="ctsp-gia">${dinhDangGia(sp.gia)}</div>
+                    <div class="ctsp-mo-ta">${sp.mo_ta || "Chưa có mô tả chi tiết cho sản phẩm này."}</div>
+                    <div class="ctsp-btn">
+                        <button onclick="themVaoGio(${sp.id_san_pham})">Thêm vào giỏ</button>
+                        <button onclick="window.history.back()">Quay lại</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.4s';
+                toast.style.opacity = '0';
+            }, 1400);
+            setTimeout(() => {
+                toast.style.display = 'none';
+                toast.style.transition = '';
+            }, 1900);
+        }
+
+        function themVaoGio(idSanPham) {
+            let gio = getGioHang();
+            let daCo = gio.find(item => item.id_san_pham === idSanPham);
+            if (daCo) {
+                daCo.so_luong += 1;
+            } else {
+                gio.push({ id_san_pham: idSanPham, so_luong: 1 });
+            }
+            setGioHang(gio);
+            showToast('Đã thêm sản phẩm vào giỏ!');
+        }
+
+        window.themVaoGio = themVaoGio;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchSanPham();
+            hienThiChiTietSanPham();
+        });
+    </script>
+</body>
+</html>

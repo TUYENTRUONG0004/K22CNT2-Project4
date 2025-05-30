@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử đơn hàng - DTN Shop</title>
+    <link rel="stylesheet" href="/Shopthoitrang/css/lich-su-don-hang.css">
+    <style>
+        .don-hang-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .don-hang-table th, .don-hang-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .don-hang-table th { background-color: #f2f2f2; }
+        .chi-tiet-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .chi-tiet-table th, .chi-tiet-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .chi-tiet-table th { background-color: #e9ecef; }
+        .chi-tiet-table img { width: 50px; height: auto; }
+        .xem-chi-tiet-btn { background-color: #007bff; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+        .xem-chi-tiet-btn:hover { background-color: #0056b3; }
+        #toast { position: fixed; bottom: 20px; right: 20px; background-color: #333; color: white; padding: 10px 20px; display: none; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHOP QUẦN ÁO ONLINE</h1>
+        <nav>
+            <a href="/Shopthoitrang/trang-chu.html">Trang chủ</a> |
+            <a href="/Shopthoitrang/gio-hang.html">Giỏ hàng</a> |
+            <a href="/Shopthoitrang/lich-su-don-hang.html">Lịch sử đơn hàng</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Lịch sử đơn hàng</h2>
+        <div id="danh-sach-don-hang"></div>
+    </main>
+    <div id="toast"></div>
+    <script>
+        // Hàm từ api.js
+        const danhSachSanPhamTinh = [
+            { id_san_pham: 1, ten_san_pham: 'Áo thun nữ trắng', gia: 199000, hinh_anh: '/images/quan-ao1.jpg', id_danh_muc: 1 },
+            { id_san_pham: 5, ten_san_pham: 'Áo khoác nữ trắng', gia: 219000, hinh_anh: '/images/quan-ao2.jpg', id_danh_muc: 1 },
+            { id_san_pham: 2, ten_san_pham: 'Quần jean xanh trời', gia: 399000, hinh_anh: '/images/quan-dai.jpg', id_danh_muc: 2 },
+            { id_san_pham: 6, ten_san_pham: 'Quần jean đen bóng', gia: 350000, hinh_anh: '/images/quan-den-dai.jpg', id_danh_muc: 2 },
+            { id_san_pham: 3, ten_san_pham: 'Giày thể thao trắng', gia: 499000, hinh_anh: '/images/giay-sneaker.jpg', id_danh_muc: 3 },
+            { id_san_pham: 7, ten_san_pham: 'Giày sneaker đen', gia: 549000, hinh_anh: '/images/giay-den.jpg', id_danh_muc: 3 },
+            { id_san_pham: 4, ten_san_pham: 'Túi đeo chéo nam', gia: 299000, hinh_anh: '/images/tui-deo-bung.jpg', id_danh_muc: 4 },
+            { id_san_pham: 8, ten_san_pham: 'Mũ lưỡi trai basic', gia: 99000, hinh_anh: '/images/mu-den.jpg', id_danh_muc: 4 }
+        ];
+
+        async function getDanhSachSanPham() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/sanpham');
+                if (!response.ok) throw new Error('Lỗi khi lấy danh sách sản phẩm');
+                const data = await response.json();
+                return data.length > 0 ? data : danhSachSanPhamTinh;
+            } catch (error) {
+                console.error('Lỗi API getDanhSachSanPham:', error);
+                return danhSachSanPhamTinh;
+            }
+        }
+
+        async function getDonHang() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/donhang');
+                if (!response.ok) throw new Error('Lỗi khi lấy danh sách đơn hàng');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Lỗi API getDonHang:', error);
+                return [];
+            }
+        }
+
+        async function getChiTietDonHang(idDonHang) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/chitietdonhang/${idDonHang}`);
+                if (!response.ok) throw new Error('Lỗi khi lấy chi tiết đơn hàng');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Lỗi API getChiTietDonHang:', error);
+                return [];
+            }
+        }
+
+        function dinhDangGia(gia) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(gia);
+        }
+
+        // Mã từ lich-su-don-hang.js
+        let dsSanPham = [];
+        let dsDonHang = [];
+
+        async function fetchData() {
+            dsSanPham = await getDanhSachSanPham();
+            dsDonHang = await getDonHang();
+        }
+
+        async function hienThiDonHang() {
+            const container = document.getElementById('danh-sach-don-hang');
+            if (dsDonHang.length === 0) {
+                container.innerHTML = `<div style="padding:32px;text-align:center;color:#d76d77;font-weight:bold;">Bạn chưa có đơn hàng nào!</div>`;
+                return;
+            }
+            let html = `<table class="don-hang-table">
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Ngày đặt</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>`;
+            dsDonHang.forEach(don => {
+                html += `
+                <tr>
+                    <td>${don.id_don_hang}</td>
+                    <td>${new Date(don.ngay_dat).toLocaleString('vi-VN')}</td>
+                    <td>${dinhDangGia(don.tong_tien)}</td>
+                    <td>${don.trang_thai}</td>
+                    <td><button class="xem-chi-tiet-btn" onclick="xemChiTiet(${don.id_don_hang})">Xem chi tiết</button></td>
+                </tr>
+                <tr id="chi-tiet-${don.id_don_hang}" style="display:none;">
+                    <td colspan="5">
+                        <div id="chi-tiet-don-${don.id_don_hang}"></div>
+                    </td>
+                </tr>`;
+            });
+            html += `</table>`;
+            container.innerHTML = html;
+        }
+
+        async function xemChiTiet(idDonHang) {
+            const row = document.getElementById(`chi-tiet-${idDonHang}`);
+            const container = document.getElementById(`chi-tiet-don-${idDonHang}`);
+            if (row.style.display === 'table-row') {
+                row.style.display = 'none';
+                return;
+            }
+            const chiTiet = await getChiTietDonHang(idDonHang);
+            if (chiTiet.length === 0) {
+                container.innerHTML = `<div style="padding:10px;text-align:center;color:#d76d77;">Không có chi tiết đơn hàng!</div>`;
+            } else {
+                let html = `<table class="chi-tiet-table">
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>`;
+                chiTiet.forEach(item => {
+                    const sp = dsSanPham.find(x => x.id_san_pham === item.id_san_pham);
+                    if (!sp) return;
+                    const thanhTien = item.so_luong * item.don_gia;
+                    html += `
+                    <tr>
+                        <td><img src="${sp.hinh_anh}" alt="${sp.ten_san_pham}"></td>
+                        <td>${sp.ten_san_pham}</td>
+                        <td>${item.so_luong}</td>
+                        <td>${dinhDangGia(item.don_gia)}</td>
+                        <td>${dinhDangGia(thanhTien)}</td>
+                    </tr>`;
+                });
+                html += `</table>`;
+                container.innerHTML = html;
+            }
+            row.style.display = 'table-row';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.4s';
+                toast.style.opacity = '0';
+            }, 1400);
+            setTimeout(() => {
+                toast.style.display = 'none';
+                toast.style.transition = '';
+            }, 1900);
+        }
+
+        window.xemChiTiet = xemChiTiet;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchData();
+            hienThiDonHang();
+        });
+    </script>
+</body>
+</html>

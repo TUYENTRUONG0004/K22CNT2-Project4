@@ -1,0 +1,27 @@
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f7f9fa; margin: 0; padding: 0;}
+header {
+    background: linear-gradient(90deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%);
+    color: #fff;
+    padding: 26px 0 10px 0;
+    text-align: center;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 12px rgba(58,28,113,0.13);
+}
+.logo-header { text-align: center; margin-bottom: 8px;}
+.logo-img { height: 48px; width: auto; border-radius: 50%; box-shadow: 0 2px 12px #fff4;}
+header h1 { margin: 0 0 8px 0; font-size: 2rem; letter-spacing: 2px; font-weight: bold;}
+nav a { color: #fff; text-decoration: none; margin: 0 16px; font-weight: 600; padding: 7px 18px; border-radius: 25px; transition: background 0.2s; display: inline-block;}
+nav a:hover { background: rgba(255,255,255,0.28); color: #3a1c71;}
+main { max-width: 800px; margin: 26px auto 0 auto; background: #fff; padding: 32px 24px 38px 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(120, 72, 178, 0.06);}
+h2 { color: #d76d77; margin-top: 0;}
+.don-hang { border: 1px solid #eee; border-radius: 9px; margin-bottom: 20px; box-shadow: 0 2px 7px #d76d771c; padding: 16px;}
+.don-hang .tt { margin-bottom: 9px;}
+.don-hang .tt b { color: #3a1c71;}
+.don-hang .sp { margin-left: 10px;}
+.don-hang .sp-list { margin-bottom: 10px;}
+.don-hang .sp-list table { width: 100%; border-collapse: collapse;}
+.don-hang .sp-list th, .don-hang .sp-list td { border-bottom: 1px solid #eee; padding: 8px 3px; text-align: center;}
+.don-hang .sp-list img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover;}
+.don-hang .tong { color: #d76d77; font-weight: bold; text-align: right;}
+.trang-thai { display: inline-block; padding: 4px 18px; background: #ffaf7b; color: #fff; border-radius: 13px; font-size: 0.99rem; font-weight: 600;}
+@media (max-width: 700px) { main { padding: 12px 2vw 18px 2vw; } }

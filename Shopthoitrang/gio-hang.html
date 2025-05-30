@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng - DTN Shop</title>
+    <link rel="stylesheet" href="/Shopthoitrang/css/gio-hang.css">
+    <style>
+        .gio-hang-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .gio-hang-table th, .gio-hang-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .gio-hang-table th { background-color: #f2f2f2; }
+        .gio-hang-table img { width: 50px; height: auto; }
+        .xoa-btn { background-color: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+        .xoa-btn:hover { background-color: #e60000; }
+        #tong-tien { font-weight: bold; font-size: 1.2em; margin-top: 10px; }
+        #dat-hang-btn { background-color: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        #dat-hang-btn:hover { background-color: #218838; }
+        #toast { position: fixed; bottom: 20px; right: 20px; background-color: #333; color: white; padding: 10px 20px; display: none; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>DTN Shop</h1>
+        <nav>
+            <a href="/Shopthoitrang/trang-chu.html">Trang chủ</a> |
+            <a href="/Shopthoitrang/gio-hang.html">Giỏ hàng</a> |
+            <a href="/Shopthoitrang/lich-su-don-hang.html">Lịch sử đơn hàng</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Giỏ hàng của bạn</h2>
+        <div id="danh-sach-gio-hang"></div>
+        <div id="tong-tien"></div>
+        <button id="dat-hang-btn" onclick="datHang()">Đặt hàng</button>
+    </main>
+    <div id="toast"></div>
+    <script>
+    const idKhachHang = 1; // Thay bằng ID khách hàng thực tế (cần cơ chế đăng nhập)
+
+    async function getGioHang(idKhachHang) {
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/giohang/${idKhachHang}`);
+            if (!response.ok) throw new Error('Lỗi khi lấy giỏ hàng');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Lỗi API getGioHang:', error);
+            return [];
+        }
+    }
+
+    async function hienThiGioHang() {
+        const ds = await getGioHang(idKhachHang);
+        const container = document.getElementById('danh-sach-gio-hang');
+        if (ds.length === 0) {
+            container.innerHTML = '<div style="padding:32px;text-align:center;color:#d76d77;font-weight:bold;">Giỏ hàng của bạn đang trống!</div>';
+            document.getElementById('tong-tien').innerText = '';
+            document.getElementById('dat-hang-btn').style.display = 'none';
+            return;
+        }
+        let html = `<table class="gio-hang-table">
+            <tr><th>Ảnh</th><th>Tên sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Thành tiền</th><th>Xoá</th></tr>`;
+        let tong = 0;
+        const dsSanPham = await getDanhSachSanPham(); // Giả sử hàm này đã được định nghĩa
+        ds.forEach(item => {
+            const sp = dsSanPham.find(x => x.id_san_pham === item.id_san_pham);
+            if (!sp) return;
+            const thanhTien = sp.gia * item.so_luong;
+            tong += thanhTien;
+            html += `
+                <tr>
+                    <td><img src="${sp.hinh_anh}" alt="${sp.ten_san_pham}"></td>
+                    <td>${sp.ten_san_pham}</td>
+                    <td>${dinhDangGia(sp.gia)}</td>
+                    <td><input type="number" min="1" value="${item.so_luong}" onchange="capNhatSoLuong(${item.id_san_pham}, this.value)"></td>
+                    <td>${dinhDangGia(thanhTien)}</td>
+                    <td><button class="xoa-btn" onclick="xoaSanPham(${item.id_san_pham})">Xoá</button></td>
+                </tr>`;
+        });
+        html += `</table>`;
+        container.innerHTML = html;
+        document.getElementById('tong-tien').innerText = 'Tổng tiền: ' + dinhDangGia(tong);
+        document.getElementById('dat-hang-btn').style.display = 'block';
+    }
+
+    async function getDanhSachSanPham() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/sanpham');
+            if (!response.ok) throw new Error('Lỗi khi lấy danh sách sản phẩm');
+            const data = await response.json();
+            return data.length > 0 ? data : [
+                { id_san_pham: 1, ten_san_pham: 'Áo thun nam trơn', gia: 199000, hinh_anh: '/images/ao-thun.jpg' },
+                { id_san_pham: 2, ten_san_pham: 'Váy xòe công sở', gia: 299000, hinh_anh: '/images/vay-xoe.jpg' }
+            ];
+        } catch (error) {
+            console.error('Lỗi API getDanhSachSanPham:', error);
+            return [];
+        }
+    }
+
+    function dinhDangGia(gia) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(gia);
+    }
+
+    async function xoaSanPham(idSanPham) {
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/giohang/${idKhachHang}/${idSanPham}`, { method: 'DELETE' });
+            if (response.ok) {
+                hienThiGioHang();
+                alert('Đã xoá sản phẩm khỏi giỏ');
+            } else {
+                alert('Lỗi khi xoá sản phẩm');
+            }
+        } catch (error) {
+            console.error('Lỗi API xoaSanPham:', error);
+            alert('Lỗi khi xoá sản phẩm');
+        }
+    }
+
+    async function capNhatSoLuong(idSanPham, sl) {
+        const soLuong = Math.max(1, parseInt(sl));
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/giohang/${idKhachHang}/${idSanPham}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ so_luong: soLuong })
+            });
+            if (response.ok) {
+                hienThiGioHang();
+                alert('Đã cập nhật số lượng');
+            } else {
+                alert('Lỗi khi cập nhật số lượng');
+            }
+        } catch (error) {
+            console.error('Lỗi API capNhatSoLuong:', error);
+            alert('Lỗi khi cập nhật số lượng');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await hienThiGioHang();
+    });
+</script>
+</body>
+</html>

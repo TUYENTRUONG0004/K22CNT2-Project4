@@ -1,0 +1,111 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f7f9fa;
+    margin: 0;
+    padding: 0;
+}
+header {
+    background: linear-gradient(90deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%);
+    color: #fff;
+    padding: 26px 0 10px 0;
+    text-align: center;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 12px rgba(58,28,113,0.13);
+}
+header h1 {
+    margin: 0 0 8px 0;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 16px;
+    font-weight: 600;
+    padding: 7px 18px;
+    border-radius: 25px;
+    transition: background 0.2s;
+    display: inline-block;
+}
+nav a:hover {
+    background: rgba(255,255,255,0.28);
+    color: #3a1c71;
+}
+main {
+    max-width: 900px;
+    margin: 26px auto 0 auto;
+    background: #fff;
+    padding: 32px 24px 38px 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(120, 72, 178, 0.06);
+}
+.container-chi-tiet {
+    display: flex;
+    gap: 42px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.ctsp-anh {
+    flex: 0 0 320px;
+    text-align: center;
+}
+.ctsp-anh img {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px #d76d7722;
+}
+.ctsp-thong-tin {
+    flex: 1;
+    min-width: 230px;
+}
+.ctsp-thong-tin h2 {
+    margin-top: 0;
+    font-size: 1.45rem;
+    color: #3a1c71;
+    margin-bottom: 17px;
+}
+.ctsp-gia {
+    font-size: 1.3rem;
+    color: #d76d77;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+.ctsp-mo-ta {
+    margin-bottom: 27px;
+    color: #444;
+    font-size: 1.09rem;
+}
+.ctsp-btn {
+    display: flex;
+    gap: 16px;
+}
+.ctsp-btn button {
+    background: linear-gradient(90deg,#ffaf7b 60%, #d76d77 100%);
+    color: #fff;
+    border: none;
+    padding: 10px 36px;
+    border-radius: 22px;
+    cursor: pointer;
+    font-size: 1.03rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(215,109,119,0.08);
+    transition: background 0.2s, transform 0.15s;
+}
+.ctsp-btn button:hover {
+    background: linear-gradient(90deg,#d76d77 50%, #3a1c71 100%);
+    color: #fff;
+    transform: scale(1.04);
+}
+@media (max-width: 900px) {
+    main { padding: 12px 2vw 18px 2vw; }
+    .container-chi-tiet { gap: 18px; }
+    .ctsp-anh img { width: 44vw; height: 44vw; min-width: 130px; max-width: 280px; max-height: 280px; }
+}
+@media (max-width: 600px) {
+    .container-chi-tiet { flex-direction: column; gap: 6px; }
+    .ctsp-anh { margin-bottom: 24px; }
+    .ctsp-thong-tin { min-width: unset; }
+}

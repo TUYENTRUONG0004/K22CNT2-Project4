@@ -1,0 +1,206 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f7f9fa;
+}
+
+header {
+    background: linear-gradient(90deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%);
+    color: #fff;
+    padding: 32px 0 14px 0;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(58,28,113,0.15);
+}
+
+header h1 {
+    margin: 0 0 8px 0;
+    font-size: 2.1rem;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+nav {
+    margin-bottom: 0;
+}
+nav a {
+    color: #fff;
+    background: rgba(0,0,0,0.05);
+    text-decoration: none;
+    margin: 0 16px;
+    font-weight: 600;
+    padding: 7px 18px;
+    border-radius: 25px;
+    transition: background 0.2s;
+    display: inline-block;
+}
+
+nav a:hover {
+    background: rgba(255,255,255,0.28);
+    color: #2c1154;
+}
+
+main {
+    max-width: 1100px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 28px 24px 32px 24px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(120, 72, 178, 0.06);
+}
+
+main h2 {
+    margin-top: 0;
+    font-size: 1.4rem;
+    color: #3a1c71;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+}
+
+#danh-muc {
+    margin-bottom: 18px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.button-danh-muc {
+    border: none;
+    background: #eee;
+    color: #3a1c71;
+    padding: 8px 24px;
+    border-radius: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    font-size: 1rem;
+}
+
+.button-danh-muc.selected,
+.button-danh-muc:hover {
+    background: linear-gradient(90deg, #ffaf7b 50%, #d76d77 100%);
+    color: #fff;
+    font-weight: 700;
+}
+
+.ds-san-pham {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    justify-content: flex-start;
+}
+
+.card-san-pham {
+    width: 250px;
+    border: 1.5px solid #ede0f7;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(58,28,113,0.045);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 10px 22px 10px;
+    transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
+    position: relative;
+}
+
+.card-san-pham:hover {
+    box-shadow: 0 8px 32px rgba(58,28,113,0.13);
+    border: 1.5px solid #d76d77;
+    transform: translateY(-6px) scale(1.03);
+}
+
+.card-san-pham img {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(215,109,119,0.09);
+}
+
+.card-san-pham h3 {
+    font-size: 1.12rem;
+    margin: 0 0 6px 0;
+    color: #3a1c71;
+    text-align: center;
+}
+
+.card-san-pham .gia {
+    color: #d76d77;
+    font-weight: bold;
+    margin-bottom: 9px;
+    font-size: 1.09rem;
+}
+
+.card-san-pham button {
+    background: linear-gradient(90deg,#ffaf7b 60%, #d76d77 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 30px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 6px rgba(215,109,119,0.08);
+    transition: background 0.2s, transform 0.15s;
+}
+
+.card-san-pham button:hover {
+    background: linear-gradient(90deg,#d76d77 50%, #3a1c71 100%);
+    color: #fff;
+    transform: scale(1.06);
+}
+
+.card-san-pham a {
+    color: #3a1c71;
+    text-decoration: underline;
+    font-size: 0.98rem;
+    margin-top: 3px;
+    transition: color 0.18s;
+}
+
+.card-san-pham a:hover {
+    color: #d76d77;
+    font-weight: bold;
+}
+
+@media (max-width: 900px) {
+    main {
+        padding: 12px 2vw 18px 2vw;
+    }
+    .ds-san-pham {
+        gap: 18px;
+    }
+    .card-san-pham {
+        width: 46vw;
+        min-width: 200px;
+        max-width: 99vw;
+    }
+    .card-san-pham img {
+        width: 38vw;
+        min-width: 120px;
+        height: 38vw;
+        max-width: 180px;
+        max-height: 180px;
+    }
+}
+
+@media (max-width: 600px) {
+    .card-san-pham {
+        width: 94vw;
+        padding: 8px 2vw 14px 2vw;
+    }
+    .ds-san-pham {
+        gap: 12px;
+    }
+    main h2 {
+        font-size: 1.13rem;
+    }
+}

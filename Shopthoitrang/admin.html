@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fashion Shop - Quản trị</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
+
+  <!-- Wrapper (Menu + Content) -->
+  <div class="flex flex-1">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-md h-auto min-h-screen">
+      <div class="p-6 border-b">
+        <h1 class="text-xl font-bold text-gray-800">Fashion Shop</h1>
+        <p class="text-sm text-gray-500">Quản trị</p>
+      </div>
+      <nav class="mt-6 space-y-2 px-4">
+        <a href="/Shopthoitrang/admin-products.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Sản phẩm</a>
+        <a href="/Shopthoitrang/admin-danh-muc.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Danh mục</a>
+        <a href="#" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Khách hàng</a>
+        <a href="/Shopthoitrang/trang-chu.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">Về trang chủ</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8">
+      <h2 class="text-3xl font-bold text-gray-900 mb-10 text-center">Tổng quan</h2>
+
+      <!-- Overview Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="bg-white rounded-lg shadow p-6 text-center" id="totalProducts">
+          <h3 class="text-lg font-semibold text-gray-600 mb-2">Tổng sản phẩm</h3>
+          <p class="text-4xl font-bold text-indigo-600">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6 text-center" id="totalOrders">
+          <h3 class="text-lg font-semibold text-gray-600 mb-2">Tổng đơn hàng</h3>
+          <p class="text-4xl font-bold text-indigo-600">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6 text-center" id="totalCustomers">
+          <h3 class="text-lg font-semibold text-gray-600 mb-2">Tổng khách hàng</h3>
+          <p class="text-4xl font-bold text-indigo-600">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6 text-center" id="totalRevenue">
+          <h3 class="text-lg font-semibold text-gray-600 mb-2">Doanh thu</h3>
+          <p class="text-4xl font-bold text-indigo-600">0</p>
+        </div>
+      </div>
+
+      <!-- Latest Orders Table -->
+      <section class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Đơn hàng mới nhất</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead class="bg-gray-100 text-gray-600 uppercase tracking-wider">
+              <tr>
+                <th class="py-3 px-4">Mã đơn</th>
+                <th class="py-3 px-4">Ngày đặt</th>
+                <th class="py-3 px-4">Khách hàng</th>
+                <th class="py-3 px-4">Tổng tiền</th>
+                <th class="py-3 px-4">Trạng thái</th>
+                <th class="py-3 px-4">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="orderTableBody" class="divide-y divide-gray-200">
+              <!-- Orders populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t py-4 text-center text-sm text-gray-500">
+    © 2023 DTN Shop. All rights reserved.
+  </footer>
+
+  <!-- JavaScript giữ nguyên -->
+  <script>
+    async function fetchOverview() {
+        const productsResponse = await fetch('http://localhost:5000/sanpham');
+        const products = await productsResponse.json();
+        document.getElementById('totalProducts').innerHTML = `<h3 class="text-lg font-semibold text-gray-600 mb-2">Tổng sản phẩm</h3><p class="text-4xl font-bold text-indigo-600">${products.length}</p>`;
+
+        const ordersResponse = await fetch('http://localhost:5000/donhang');
+        const orders = await ordersResponse.json();
+        document.getElementById('totalOrders').innerHTML = `<h3 class="text-lg font-semibold text-gray-600 mb-2">Tổng đơn hàng</h3><p class="text-4xl font-bold text-indigo-600">${orders.length}</p>`;
+
+        const customersResponse = await fetch('http://localhost:5000/khachhang');
+        const customers = await customersResponse.json();
+        document.getElementById('totalCustomers').innerHTML = `<h3 class="text-lg font-semibold text-gray-600 mb-2">Tổng khách hàng</h3><p class="text-4xl font-bold text-indigo-600">${customers.length}</p>`;
+
+        const revenue = orders.reduce((sum, order) => sum + order.tong_tien, 0);
+        document.getElementById('totalRevenue').innerHTML = `<h3 class="text-lg font-semibold text-gray-600 mb-2">Doanh thu</h3><p class="text-4xl font-bold text-indigo-600">${revenue.toLocaleString('vi-VN')} VNĐ</p>`;
+    }
+
+    async function fetchOrders() {
+        const response = await fetch('http://localhost:5000/donhang');
+        const orders = await response.json();
+        const customersResponse = await fetch('http://localhost:5000/khachhang');
+        const customers = await customersResponse.json();
+        const customerMap = customers.reduce((map, cust) => {
+            map[cust.id_khach_hang] = cust.ten_khach_hang;
+            return map;
+        }, {});
+        const tableBody = document.getElementById('orderTableBody');
+        tableBody.innerHTML = '';
+        orders.sort((a, b) => new Date(b.ngay_dat) - new Date(a.ngay_dat)).slice(0, 5).forEach(order => {
+            const row = `
+                <tr class="hover:bg-gray-50">
+                    <td class="py-3 px-4">${order.id_don_hang}</td>
+                    <td class="py-3 px-4">${new Date(order.ngay_dat).toLocaleString('vi-VN')}</td>
+                    <td class="py-3 px-4">${customerMap[order.id_khach_hang] || 'N/A'}</td>
+                    <td class="py-3 px-4">${order.tong_tien.toLocaleString('vi-VN')} VNĐ</td>
+                    <td class="py-3 px-4">${order.trang_thai}</td>
+                    <td class="py-3 px-4">
+                        <button class="edit-order-btn text-blue-500 hover:text-blue-700 mr-2" data-id="${order.id_don_hang}">Sửa</button>
+                        <button class="delete-order-btn text-red-500 hover:text-red-700" data-id="${order.id_don_hang}">Xóa</button>
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+
+        document.querySelectorAll('.edit-order-btn').forEach(btn => {
+            btn.addEventListener('click', editOrder);
+        });
+        document.querySelectorAll('.delete-order-btn').forEach(btn => {
+            btn.addEventListener('click', deleteOrder);
+        });
+    }
+
+    async function editOrder(e) {
+        const id = e.target.getAttribute('data-id');
+        const response = await fetch(`http://localhost:5000/donhang/${id}`);
+        const order = await response.json();
+        if (order) {
+            alert(`Chỉnh sửa đơn hàng ${order.id_don_hang}. Thêm form chỉnh sửa nếu cần.`);
+        }
+    }
+
+    async function deleteOrder(e) {
+        if (confirm('Bạn có chắc muốn xóa đơn hàng này?')) {
+            const id = e.target.getAttribute('data-id');
+            const response = await fetch(`http://localhost:5000/donhang/${id}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) fetchOrders();
+        }
+    }
+
+    fetchOverview();
+    fetchOrders();
+  </script>
+</body>
+</html>
