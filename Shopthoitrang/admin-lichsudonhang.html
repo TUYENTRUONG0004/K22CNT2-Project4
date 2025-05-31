@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý lịch sử đơn hàng - Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+            margin-right: 5px;
+        }
+        .edit-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .edit-form {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .edit-form input {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+        .edit-form button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+        }
+        .edit-form .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .edit-form .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>QUẢN LÝ LỊCH SỬ ĐƠN HÀNG - ADMIN</h1>
+        <a href="/Shopthoitrang/admin.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">BACK</a>
+    </header>
+    <div class="container">
+        <table id="donhang-table">
+            <thead>
+                <tr>
+                    <th>ID Đơn hàng</th>
+                    <th>Ngày đặt</th>
+                    <th>ID Khách hàng</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="donhang-body"></tbody>
+        </table>
+        <div id="edit-form" class="edit-form">
+            <input type="hidden" id="edit-id-don-hang">
+            <input type="text" id="edit-trang-thai" placeholder="Trạng thái" required>
+            <button class="save-btn" onclick="luuChinhSua()">Lưu</button>
+            <button class="cancel-btn" onclick="huyChinhSua()">Hủy</button>
+        </div>
+    </div>
+    <script>
+        async function getDonHang() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/donhang');
+                if (!response.ok) throw new Error('Lỗi khi lấy danh sách đơn hàng');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Lỗi API getDonHang:', error);
+                return [];
+            }
+        }
+
+        function hienThiDanhSachDonHang() {
+            const tbody = document.getElementById('donhang-body');
+            tbody.innerHTML = '';
+            getDonHang().then(donHang => {
+                donHang.forEach(dh => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${dh.id_don_hang}</td>
+                        <td>${new Date(dh.ngay_dat).toLocaleDateString('vi-VN')}</td>
+                        <td>${dh.id_khach_hang}</td>
+                        <td>${dh.tong_tien.toLocaleString('vi-VN')} VNĐ</td>
+                        <td>${dh.trang_thai}</td>
+                        <td>
+                            <button class="edit-btn" onclick="hienFormChinhSua(${dh.id_don_hang}, '${dh.trang_thai}')">Sửa</button>
+                            <button class="delete-btn" onclick="xoaDonHang(${dh.id_don_hang})">Xóa</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+
+        function hienFormChinhSua(id, trangThai) {
+            document.getElementById('edit-id-don-hang').value = id;
+            document.getElementById('edit-trang-thai').value = trangThai;
+            document.getElementById('edit-form').style.display = 'block';
+        }
+
+        function huyChinhSua() {
+            document.getElementById('edit-form').style.display = 'none';
+            document.getElementById('edit-id-don-hang').value = '';
+            document.getElementById('edit-trang-thai').value = '';
+        }
+
+        async function luuChinhSua() {
+            const id = document.getElementById('edit-id-don-hang').value;
+            const trangThai = document.getElementById('edit-trang-thai').value;
+
+            if (!trangThai) {
+                alert('Vui lòng nhập trạng thái!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/donhang/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ trang_thai: trangThai })
+                });
+                if (response.ok) {
+                    alert('Cập nhật đơn hàng thành công!');
+                    huyChinhSua();
+                    hienThiDanhSachDonHang();
+                } else {
+                    const errorData = await response.json();
+                    alert('Lỗi khi cập nhật: ' + errorData.error);
+                }
+            } catch (error) {
+                console.error('Lỗi API luuChinhSua:', error);
+                alert('Lỗi khi cập nhật đơn hàng!');
+            }
+        }
+
+        async function xoaDonHang(id) {
+            if (confirm('Bạn có chắc muốn xóa đơn hàng này?')) {
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/donhang/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        alert('Xóa đơn hàng thành công!');
+                        hienThiDanhSachDonHang();
+                    } else {
+                        const errorData = await response.json();
+                        alert('Lỗi khi xóa: ' + errorData.error);
+                    }
+                } catch (error) {
+                    console.error('Lỗi API xoaDonHang:', error);
+                    alert('Lỗi khi xóa đơn hàng!');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            hienThiDanhSachDonHang();
+        });
+    </script>
+</body>
+</html>

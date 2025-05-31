@@ -3,142 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Trị Danh Mục - DTN Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Quản lý danh mục - Admin</title>
     <style>
-        .table-container { margin: 20px; }
-        .form-container { margin: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .add-form, .edit-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .add-form input, .edit-form input {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+        .add-form button, .edit-form button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+        }
+        .add-form button {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .add-form button:hover {
+            background-color: #45a049;
+        }
+        .edit-form {
+            display: none;
+        }
+        .edit-form .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .edit-form .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+            margin-right: 5px;
+        }
+        .edit-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">DTN Shop Admin</a>
-            <div class="navbar-nav">
-                <a class="nav-link" href="/Shopthoitrang/admin-products.html">Sản Phẩm</a>
-                <a class="nav-link active" href="/Shopthoitrang/admin.html">Quay lại</a>
-            </div>
+    <header>
+        <h1>QUẢN LÝ DANH MỤC - ADMIN</h1>
+        <a href="/Shopthoitrang/admin.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">BACK</a>
+    </header>
+    <div class="container">
+        <div class="add-form">
+            <input type="number" id="id-danh-muc" placeholder="ID danh mục" required>
+            <input type="text" id="ten-danh-muc" placeholder="Tên danh mục" required>
+            <button onclick="themDanhMuc()">Thêm danh mục</button>
         </div>
-    </nav>
-
-    <div class="form-container">
-        <h2>Thêm Danh Mục</h2>
-        <form id="addCategoryForm">
-            <div class="mb-3">
-                <label class="form-label">Tên Danh Mục</label>
-                <input type="text" class="form-control" id="ten_danh_muc" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Thêm Danh Mục</button>
-        </form>
-    </div>
-
-    <div class="table-container">
-        <h2>Danh Sách Danh Mục</h2>
-        <table class="table table-striped" id="categoryTable">
+        <div id="edit-form" class="edit-form">
+            <input type="hidden" id="edit-id-danh-muc">
+            <input type="text" id="edit-ten-danh-muc" placeholder="Tên danh mục" required>
+            <button class="save-btn" onclick="luuChinhSua()">Lưu</button>
+            <button class="cancel-btn" onclick="huyChinhSua()">Hủy</button>
+        </div>
+        <table id="danh-muc-table">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Tên Danh Mục</th>
-                    <th>Hành Động</th>
+                    <th>Tên danh mục</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="danh-muc-body"></tbody>
         </table>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        async function loadCategories() {
+        async function getDanhMuc() {
             try {
                 const response = await fetch('http://127.0.0.1:5000/danhmuc');
-                if (!response.ok) throw new Error('Không thể lấy danh sách danh mục');
-                const categories = await response.json();
-                const tbody = document.getElementById('categoryTable').getElementsByTagName('tbody')[0];
-                tbody.innerHTML = '';
-                categories.forEach(category => {
-                    const row = `
-                        <tr>
-                            <td>${category.id_danh_muc}</td>
-                            <td>${category.ten_danh_muc}</td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id_danh_muc})">Sửa</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id_danh_muc})">Xóa</button>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
+                if (!response.ok) throw new Error('Lỗi khi lấy danh sách danh mục');
+                const data = await response.json();
+                return data;
             } catch (error) {
-                console.error('Lỗi:', error);
-                alert('Lỗi khi tải danh sách danh mục');
+                console.error('Lỗi API getDanhMuc:', error);
+                return [];
             }
         }
 
-        async function addCategory() {
-            const category = { ten_danh_muc: document.getElementById('ten_danh_muc').value };
+        function hienThiDanhSachDanhMuc() {
+            const tbody = document.getElementById('danh-muc-body');
+            tbody.innerHTML = '';
+            getDanhMuc().then(danhMuc => {
+                danhMuc.forEach(dm => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${dm.id_danh_muc}</td>
+                        <td>${dm.ten_danh_muc}</td>
+                        <td>
+                            <button class="edit-btn" onclick="hienFormChinhSua(${dm.id_danh_muc}, '${dm.ten_danh_muc}')">Sửa</button>
+                            <button class="delete-btn" onclick="xoaDanhMuc(${dm.id_danh_muc})">Xóa</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+
+        async function themDanhMuc() {
+            const idDanhMuc = document.getElementById('id-danh-muc').value;
+            const tenDanhMuc = document.getElementById('ten-danh-muc').value;
+
+            if (!idDanhMuc || !tenDanhMuc) {
+                alert('Vui lòng nhập đầy đủ thông tin!');
+                return;
+            }
+
             try {
                 const response = await fetch('http://127.0.0.1:5000/danhmuc', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(category)
+                    body: JSON.stringify({ id_danh_muc: parseInt(idDanhMuc), ten_danh_muc: tenDanhMuc })
                 });
                 if (response.ok) {
-                    alert('Thêm danh mục thành công');
-                    document.getElementById('addCategoryForm').reset();
-                    loadCategories();
+                    alert('Thêm danh mục thành công!');
+                    document.getElementById('id-danh-muc').value = '';
+                    document.getElementById('ten-danh-muc').value = '';
+                    hienThiDanhSachDanhMuc();
                 } else {
-                    throw new Error('Thêm danh mục thất bại');
+                    const errorData = await response.json();
+                    alert('Lỗi khi thêm danh mục: ' + errorData.error);
                 }
             } catch (error) {
-                console.error('Lỗi:', error);
-                alert('Lỗi khi thêm danh mục');
+                console.error('Lỗi API themDanhMuc:', error);
+                alert('Lỗi khi thêm danh mục!');
             }
         }
 
-        async function editCategory(id) {
-            const newName = prompt('Nhập tên danh mục mới:', '');
-            if (newName) {
-                try {
-                    const response = await fetch(`http://127.0.0.1:5000/danhmuc/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ten_danh_muc: newName })
-                    });
-                    if (response.ok) {
-                        alert('Cập nhật danh mục thành công');
-                        loadCategories();
-                    } else {
-                        throw new Error('Cập nhật danh mục thất bại');
-                    }
-                } catch (error) {
-                    console.error('Lỗi:', error);
-                    alert('Lỗi khi cập nhật danh mục');
+        function hienFormChinhSua(id, ten) {
+            document.getElementById('edit-id-danh-muc').value = id;
+            document.getElementById('edit-ten-danh-muc').value = ten;
+            document.getElementById('edit-form').style.display = 'block';
+        }
+
+        function huyChinhSua() {
+            document.getElementById('edit-form').style.display = 'none';
+            document.getElementById('edit-id-danh-muc').value = '';
+            document.getElementById('edit-ten-danh-muc').value = '';
+        }
+
+        async function luuChinhSua() {
+            const id = document.getElementById('edit-id-danh-muc').value;
+            const ten = document.getElementById('edit-ten-danh-muc').value;
+
+            if (!ten) {
+                alert('Vui lòng nhập tên danh mục!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/danhmuc/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ten_danh_muc: ten })
+                });
+                if (response.ok) {
+                    alert('Cập nhật danh mục thành công!');
+                    huyChinhSua();
+                    hienThiDanhSachDanhMuc();
+                } else {
+                    const errorData = await response.json();
+                    alert('Lỗi khi cập nhật danh mục: ' + errorData.error);
                 }
+            } catch (error) {
+                console.error('Lỗi API luuChinhSua:', error);
+                alert('Lỗi khi cập nhật danh mục!');
             }
         }
 
-        async function deleteCategory(id) {
+        async function xoaDanhMuc(id) {
             if (confirm('Bạn có chắc muốn xóa danh mục này?')) {
                 try {
                     const response = await fetch(`http://127.0.0.1:5000/danhmuc/${id}`, {
                         method: 'DELETE'
                     });
-                    const result = await response.json();
-                    alert(result.message);
-                    loadCategories();
+                    if (response.ok) {
+                        alert('Xóa danh mục thành công!');
+                        hienThiDanhSachDanhMuc();
+                    } else {
+                        const errorData = await response.json();
+                        alert('Lỗi khi xóa danh mục: ' + errorData.error);
+                    }
                 } catch (error) {
-                    console.error('Lỗi:', error);
-                    alert('Lỗi khi xóa danh mục');
+                    console.error('Lỗi API xoaDanhMuc:', error);
+                    alert('Lỗi khi xóa danh mục!');
                 }
             }
         }
 
-        document.getElementById('addCategoryForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            addCategory();
+        document.addEventListener('DOMContentLoaded', () => {
+            hienThiDanhSachDanhMuc();
         });
-
-        window.onload = loadCategories;
     </script>
 </body>
 </html>

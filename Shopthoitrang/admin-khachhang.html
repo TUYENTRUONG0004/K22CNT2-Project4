@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý khách hàng - Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .edit-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+        .edit-form {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .edit-form input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+        .edit-form button {
+            padding: 8px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>QUẢN LÝ KHÁCH HÀNG - ADMIN</h1>
+        <a href="/Shopthoitrang/admin.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">BACK</a>
+    </header>
+    <div class="container">
+        <table id="khach-hang-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên khách hàng</th>
+                    <th>Số điện thoại</th>
+                    <th>Email</th>
+                    <th>Địa chỉ</th>
+                    <th>Ngày tạo</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="khach-hang-body"></tbody>
+        </table>
+        <div id="edit-form" class="edit-form">
+            <input type="hidden" id="edit-id">
+            <input type="text" id="edit-ten" placeholder="Tên khách hàng" required>
+            <input type="text" id="edit-so-dien-thoai" placeholder="Số điện thoại" required>
+            <input type="email" id="edit-email" placeholder="Email (tùy chọn)">
+            <input type="text" id="edit-dia-chi" placeholder="Địa chỉ (tùy chọn)">
+            <button class="save-btn" onclick="saveEdit()">Lưu</button>
+            <button class="cancel-btn" onclick="cancelEdit()">Hủy</button>
+        </div>
+    </div>
+    <script>
+        async function getKhachHang() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/khachhang');
+                if (!response.ok) throw new Error('Lỗi khi lấy danh sách khách hàng');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Lỗi API getKhachHang:', error);
+                return [];
+            }
+        }
+
+        function hienThiDanhSachKhachHang() {
+            const tbody = document.getElementById('khach-hang-body');
+            tbody.innerHTML = '';
+            getKhachHang().then(khachHang => {
+                khachHang.forEach(kh => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${kh.id_khach_hang}</td>
+                        <td>${kh.ten_khach_hang}</td>
+                        <td>${kh.so_dien_thoai}</td>
+                        <td>${kh.email || '-'}</td>
+                        <td>${kh.dia_chi || '-'}</td>
+                        <td>${new Date(kh.ngay_tao).toLocaleString('vi-VN')}</td>
+                        <td>
+                            <button class="edit-btn" onclick="showEditForm(${kh.id_khach_hang}, '${kh.ten_khach_hang}', '${kh.so_dien_thoai}', '${kh.email || ''}', '${kh.dia_chi || ''}')">Sửa</button>
+                            <button class="delete-btn" onclick="xoaKhachHang(${kh.id_khach_hang})">Xóa</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+
+        function showEditForm(id, ten, soDienThoai, email, diaChi) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-ten').value = ten;
+            document.getElementById('edit-so-dien-thoai').value = soDienThoai;
+            document.getElementById('edit-email').value = email;
+            document.getElementById('edit-dia-chi').value = diaChi;
+            document.getElementById('edit-form').style.display = 'block';
+        }
+
+        function cancelEdit() {
+            document.getElementById('edit-form').style.display = 'none';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('edit-ten').value = '';
+            document.getElementById('edit-so-dien-thoai').value = '';
+            document.getElementById('edit-email').value = '';
+            document.getElementById('edit-dia-chi').value = '';
+        }
+
+        async function saveEdit() {
+            const id = document.getElementById('edit-id').value;
+            const ten = document.getElementById('edit-ten').value;
+            const soDienThoai = document.getElementById('edit-so-dien-thoai').value;
+            const email = document.getElementById('edit-email').value;
+            const diaChi = document.getElementById('edit-dia-chi').value;
+
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/khachhang/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ten_khach_hang: ten, so_dien_thoai: soDienThoai, email: email, dia_chi: diaChi })
+                });
+                if (response.ok) {
+                    alert('Cập nhật khách hàng thành công!');
+                    cancelEdit();
+                    hienThiDanhSachKhachHang();
+                } else {
+                    const errorData = await response.json();
+                    alert('Lỗi khi cập nhật: ' + errorData.error);
+                }
+            } catch (error) {
+                console.error('Lỗi API saveEdit:', error);
+                alert('Lỗi khi cập nhật khách hàng!');
+            }
+        }
+
+        async function xoaKhachHang(id) {
+            if (confirm('Bạn có chắc muốn xóa khách hàng này?')) {
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/khachhang/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        alert('Xóa khách hàng thành công!');
+                        hienThiDanhSachKhachHang();
+                    } else {
+                        const errorData = await response.json();
+                        alert('Lỗi khi xóa: ' + errorData.error);
+                    }
+                } catch (error) {
+                    console.error('Lỗi API xoaKhachHang:', error);
+                    alert('Lỗi khi xóa khách hàng!');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            hienThiDanhSachKhachHang();
+        });
+    </script>
+</body>
+</html>
