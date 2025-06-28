@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTN Shop - Thanh toán</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-black text-white">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">DTN Shop - Thanh toán</h1>
+            <div>
+                <a href="/Shopthoitrang/gio-hang.html" class="text-white hover:text-gray-200">Quay lại</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+        <h2 class="text-3xl font-bold mb-6">Thông tin thanh toán</h2>
+        <div class="max-w-md mx-auto bg-white shadow-md rounded-lg p-6">
+            <form id="checkoutForm" class="space-y-4">
+                <input type="hidden" id="id_khach_hang" value="">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tên khách hàng</label>
+                    <input type="text" id="ten_khach_hang" class="mt-1 p-2 w-full border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Số tiền</label>
+                    <input type="number" id="tong_tien" class="mt-1 p-2 w-full border rounded" required readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                    <input type="tel" id="so_dien_thoai" class="mt-1 p-2 w-full border rounded" required pattern="[0-9]{10}" placeholder="Nhập số điện thoại (10 số)">
+                </div>
+                <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Thanh toán khi nhận hàng</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-4">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 DTN Shop. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idKhachHang = urlParams.get('id_khach_hang');
+            if (idKhachHang) {
+                document.getElementById('id_khach_hang').value = idKhachHang;
+                loadCartTotal(idKhachHang);
+            } else {
+                alert('Không tìm thấy ID khách hàng!');
+                window.location.href = '/Shopthoitrang/gio-hang.html';
+            }
+        });
+
+        async function loadCartTotal(idKhachHang) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/giohang?id_khach_hang=${idKhachHang}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const cartItems = await response.json();
+                let total = 0;
+                for (const item of cartItems) {
+                    const productResponse = await fetch(`http://127.0.0.1:5000/sanpham/${item.id_san_pham}`);
+                    const product = await productResponse.json();
+                    total += item.so_luong * (product.gia || 0);
+                }
+                document.getElementById('tong_tien').value = total;
+            } catch (error) {
+                console.error('Lỗi khi tải tổng tiền:', error);
+                alert('Lỗi khi tải thông tin giỏ hàng!');
+            }
+        }
+
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idKhachHang = document.getElementById('id_khach_hang').value;
+            const tenKhachHang = document.getElementById('ten_khach_hang').value;
+            const tongTien = document.getElementById('tong_tien').value;
+            const soDienThoai = document.getElementById('so_dien_thoai').value;
+
+            if (!tenKhachHang || !tongTien || !soDienThoai) {
+                alert('Vui lòng điền đầy đủ thông tin!');
+                return;
+            }
+
+            // Kiểm tra định dạng số điện thoại (10 số)
+            if (!/^[0-9]{10}$/.test(soDienThoai)) {
+                alert('Số điện thoại phải là 10 chữ số!');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/donhang', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_khach_hang: idKhachHang,
+                        tong_tien: parseFloat(tongTien),
+                        so_dien_thoai: soDienThoai,
+                        ten_khach_hang: tenKhachHang,
+                        trang_thai: 'Chờ xử lý',
+                        ngay_dat: new Date().toISOString()
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message || 'Đơn hàng đã được tạo!');
+                    // Xóa giỏ hàng sau khi đặt thành công
+                    await fetch(`http://127.0.0.1:5000/giohang?id_khach_hang=${idKhachHang}`, {
+                        method: 'DELETE'
+                    });
+                    // Chuyển hướng đến admin-lichsudonhang.html để hiển thị đơn hàng mới
+                    window.location.href = '/Shopthoitrang/admin-lichsudonhang.html';
+                } else {
+                    alert(data.error || 'Lỗi khi đặt hàng!');
+                }
+            } catch (error) {
+                console.error('Lỗi khi đặt hàng:', error);
+                alert('Lỗi khi gửi đơn hàng!');
+            }
+        });
+    </script>
+</body>
+</html>

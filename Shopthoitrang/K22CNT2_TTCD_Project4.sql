@@ -45,7 +45,6 @@ CREATE TABLE KhachHang (
 GO
 
 -- Bảng giỏ hàng
--- Bảng giỏ hàng
 CREATE TABLE GioHang (
     id_gio_hang INT IDENTITY(1,1) PRIMARY KEY,
     id_khach_hang INT NOT NULL,
@@ -58,7 +57,6 @@ CREATE TABLE GioHang (
         REFERENCES SanPham(id_san_pham)
 );
 GO
-GO
 
 -- Bảng đơn hàng
 CREATE TABLE DonHang (
@@ -68,22 +66,6 @@ CREATE TABLE DonHang (
     tong_tien DECIMAL(10,2) NOT NULL,
     trang_thai NVARCHAR(50) NOT NULL,
     CONSTRAINT FK_DonHang_KhachHang FOREIGN KEY (id_khach_hang)
-        REFERENCES KhachHang(id_khach_hang)
-);
-GO
-
--- Bảng thanh toán
-CREATE TABLE ThanhToan (
-    id_thanh_toan INT PRIMARY KEY,
-    id_don_hang INT NOT NULL,
-    id_khach_hang INT NOT NULL,
-    tong_tien DECIMAL(10,2) NOT NULL,
-    phuong_thuc NVARCHAR(50) NOT NULL,
-    trang_thai NVARCHAR(50) NOT NULL,
-    thoi_gian DATETIME NOT NULL,
-    CONSTRAINT FK_ThanhToan_DonHang FOREIGN KEY (id_don_hang)
-        REFERENCES DonHang(id_don_hang),
-    CONSTRAINT FK_ThanhToan_KhachHang FOREIGN KEY (id_khach_hang)
         REFERENCES KhachHang(id_khach_hang)
 );
 GO
@@ -140,12 +122,6 @@ INSERT INTO DonHang VALUES
 (2, GETDATE(), 2, 359000, N'Đã giao'),
 (3, GETDATE(), 3, 387000, N'Đang giao');
 
--- Bảng ThanhToan
-INSERT INTO ThanhToan VALUES 
-(1, 1, 1, 398000, N'Thanh toán khi nhận hàng', N'Chưa thanh toán', GETDATE()),
-(2, 2, 2, 359000, N'VNPay', N'Thành công', GETDATE()),
-(3, 3, 3, 387000, N'Momo', N'Thành công', GETDATE());
-
 -- Bảng ChiTietDonHang
 INSERT INTO ChiTietDonHang VALUES 
 (1, 1, 1, 2, 199000),
@@ -155,7 +131,6 @@ INSERT INTO ChiTietDonHang VALUES
 
 select * from QuanTri;
 select * from ChiTietDonHang;
-select * from ThanhToan; 
 select * from GioHang;
 select * from KhachHang;
 select * from SanPham;
@@ -163,7 +138,6 @@ select * from DanhMuc;
 select * from DonHang;
 
 drop table QuanTri
-
 Drop table ChiTietDonHang
 drop table ThanhToan
 drop table GioHang

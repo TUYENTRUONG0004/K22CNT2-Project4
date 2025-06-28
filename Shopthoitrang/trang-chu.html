@@ -13,13 +13,13 @@
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold">DTN Shop</h1>
             <nav class="space-x-4">
-                <a href="/Shopthoitrang/trang-chu.html" class="text-white hover:text-gray-200">Trang chủ</a>
-                <a href="/Shopthoitrang/dat-hang.html" class="text-white hover:text-gray-200">Sản phẩm</a>
-                
+                <a href="trang-chu.html" class="text-white hover:text-gray-200">Trang chủ</a>
+                <a href="dat-hang.html" class="text-white hover:text-gray-200">Sản phẩm</a>
             </nav>
-            <div class="space-x-4">
-                <a href="#" class="text-white hover:text-gray-200">Đăng nhập</a>
-                <a href="admin-products.html" class="text-white hover:text-gray-200">Quản trị</a>
+            <div class="space-x-4" id="userActions">
+                <a href="/Shopthoitrang/dang-nhap.html" class="text-white hover:text-gray-200">Đăng nhập</a>
+                <a href="/Shopthoitrang/dang-ky.html" class="text-white hover:text-gray-200">Đăng ký</a>
+                <a href="#" id="logoutBtn" class="text-red-400 hover:text-red-300 hidden">Đăng xuất</a>
             </div>
         </div>
     </header>
@@ -29,7 +29,7 @@
         <div class="bg-gray-800 text-white text-center py-16 mb-8 rounded-lg">
             <h2 class="text-4xl font-bold">Thời trang chất lượng cao</h2>
             <p class="mt-2 text-lg">Khám phá bộ sưu tập mới nhất của chúng tôi</p>
-            <a href="/Shopthoitrang/dat-hang.html" class="mt-4 inline-block bg-blue-500 text-white py-2 px-6 rounded hover:bg-blue-600">Mua ngay</a>
+            <a href="dat-hang.html" class="mt-4 inline-block bg-blue-500 text-white py-2 px-6 rounded hover:bg-blue-600">Mua ngay</a>
         </div>
 
         <h2 class="text-3xl font-bold text-center mb-8">Sản phẩm nổi bật</h2>
@@ -70,7 +70,6 @@
                             <h3 class="text-lg font-semibold">${product.ten_san_pham}</h3>
                             <p class="text-gray-600">Giá: ${product.gia.toLocaleString('vi-VN')} VNĐ</p>
                             <button class="mt-2 bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600" onclick="addToCart(${product.id_san_pham}, 1)">Thêm vào giỏ</button>
-                            
                         </div>
                     `;
                     featuredProducts.innerHTML += card;
@@ -108,9 +107,16 @@
         }
 
         async function addToCart(productId, quantity) {
+            const idKhachHang = localStorage.getItem('id_khach_hang');
+            if (!idKhachHang) {
+                alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+                window.location.href = '/Shopthoitrang/dang-nhap.html';
+                return;
+            }
+
             const cartItem = {
                 id_gio_hang: Date.now(),
-                id_khach_hang: 1,
+                id_khach_hang: idKhachHang,
                 id_san_pham: productId,
                 so_luong: quantity,
                 ngay_them: new Date().toISOString().split('T')[0]
@@ -125,15 +131,54 @@
                     body: JSON.stringify(cartItem)
                 });
                 const result = await response.json();
-                alert(result.message || 'Thêm vào giỏ hàng thất bại');
+                alert(result.message || 'Thêm vào giỏ hàng');
             } catch (error) {
                 console.error('Lỗi:', error);
                 alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await Promise.all([fetchFeaturedProducts(), fetchCategories()]);
+        // Xử lý đăng xuất
+        document.addEventListener('DOMContentLoaded', () => {
+            const idKhachHang = localStorage.getItem('id_khach_hang');
+            const userActions = document.getElementById('userActions');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (idKhachHang) {
+                // Nếu đã đăng nhập, ẩn đăng nhập/đăng ký, hiển thị đăng xuất
+                userActions.querySelectorAll('a').forEach(link => {
+                    if (link.href.includes('dang-nhap') || link.href.includes('dang-ky')) {
+                        link.style.display = 'none';
+                    }
+                });
+                logoutBtn.classList.remove('hidden');
+            }
+
+            logoutBtn.addEventListener('click', async () => {
+                if (idKhachHang) {
+                    if (confirm('Bạn có chắc muốn đăng xuất? Giỏ hàng sẽ bị xóa!')) {
+                        try {
+                            // Xóa tất cả sản phẩm trong giỏ hàng
+                            await fetch(`http://127.0.0.1:5000/giohang?id_khach_hang=${idKhachHang}`, {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+                            // Xóa id_khach_hang khỏi localStorage
+                            localStorage.removeItem('id_khach_hang');
+                            alert('Đăng xuất thành công! Giỏ hàng đã bị xóa.');
+                            // Tải lại trang chủ
+                            window.location.href = '/Shopthoitrang/trang-chu.html';
+                        } catch (error) {
+                            console.error('Lỗi khi xóa giỏ hàng:', error);
+                            alert('Lỗi khi đăng xuất!');
+                        }
+                    }
+                } else {
+                    alert('Bạn chưa đăng nhập!');
+                }
+            });
+
+            Promise.all([fetchFeaturedProducts(), fetchCategories()]);
         });
     </script>
 </body>

@@ -1,25 +1,44 @@
+/* Cơ bản */
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: #f7f9fa;
     margin: 0;
     padding: 0;
 }
+ .gio-hang-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .gio-hang-table th, .gio-hang-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .gio-hang-table th { background-color: #f2f2f2; }
+        .gio-hang-table img { width: 50px; height: auto; }
+        .xoa-btn { background-color: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+        .xoa-btn:hover { background-color: #e60000; }
+        #tong-tien { font-weight: bold; font-size: 1.2em; margin-top: 10px; }
+        #dat-hang-btn { background-color: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        #dat-hang-btn:hover { background-color: #218838; }
+        #toast { position: fixed; bottom: 20px; right: 20px; background-color: #333; color: white; padding: 10px 20px; display: none; z-index: 1000; }
+
+/* Header */
 header {
-    background: linear-gradient(90deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%);
+    background: linear-gradient(90deg, #ffaf7b 0%, #d76d77 50%, #3a1c71 100%);
     color: #fff;
     padding: 26px 0 10px 0;
     text-align: center;
     margin-bottom: 18px;
-    box-shadow: 0 2px 12px rgba(58,28,113,0.13);
+    box-shadow: 0 2px 12px rgba(58, 28, 113, 0.13);
 }
+
 header h1 {
     margin: 0 0 8px 0;
     font-size: 2rem;
     letter-spacing: 2px;
     font-weight: bold;
 }
-nav a {
-    color: #fff;
+
+header nav {
+    margin-top: 10px;
+}
+
+header nav a {
+    color: #fff; /* Màu chữ */
     text-decoration: none;
     margin: 0 16px;
     font-weight: 600;
@@ -28,79 +47,87 @@ nav a {
     transition: background 0.2s;
     display: inline-block;
 }
-nav a:hover {
-    background: rgba(255,255,255,0.28);
+
+header nav a:hover {
+    background: rgba(255, 255, 255, 0.28);
     color: #3a1c71;
 }
+
+/* Phần chính */
 main {
-    max-width: 900px;
-    margin: 26px auto 0 auto;
+    max-width: 1000px;
+    margin: 0 auto;
     background: #fff;
     padding: 32px 24px 38px 24px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(120, 72, 178, 0.06);
+    border: 1px solid #d76d77;
 }
+
+/* Tiêu đề */
 h2 {
     color: #d76d77;
     margin-top: 0;
+    text-align: center;
+    font-weight: bold;
 }
-#danh-sach-gio-hang {
-    margin-bottom: 30px;
+
+/* Thông báo */
+#message {
+    color: #d76d77;
+    text-align: center;
+    margin-bottom: 16px;
+    font-weight: 500;
 }
+
+/* Bảng giỏ hàng */
 .gio-hang-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
 }
-.gio-hang-table th, .gio-hang-table td {
-    border-bottom: 1px solid #eee;
-    padding: 12px 8px;
+
+.gio-hang-table th,
+.gio-hang-table td {
+    border: 1px solid #ddd;
+    padding: 12px 10px;
     text-align: center;
 }
+
 .gio-hang-table th {
     background: #f7e6f1;
-    color: #3a1c71;
+    color: #d76d77;
     font-weight: 600;
 }
-.gio-hang-table img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 9px;
+
+.gio-hang-table td:first-child {
+    text-align: left;
 }
-.gio-hang-table input[type='number'] {
-    width: 52px;
-    padding: 5px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
+
+/* Nút xóa */
 .xoa-btn {
     background: #d76d77;
     color: #fff;
     border: none;
-    padding: 5px 15px;
-    border-radius: 8px;
+    padding: 6px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     transition: background 0.18s;
 }
+
 .xoa-btn:hover {
     background: #3a1c71;
 }
-.tong-tien {
-    font-size: 1.2rem;
-    color: #d76d77;
-    font-weight: bold;
-    margin-bottom: 18px;
-    text-align: right;
-}
+
+/* Nút đặt hàng */
 .dat-hang-btn {
     text-align: right;
 }
+
 .dat-hang-btn button {
-    background: linear-gradient(90deg,#ffaf7b 60%, #d76d77 100%);
-    color: #fff;
+    background: linear-gradient(90deg, #ffaf7b 60%, #d76d77 100%);
+    color: #e72929;
     border: none;
     padding: 12px 32px;
     border-radius: 22px;
@@ -108,29 +135,41 @@ h2 {
     font-size: 1.08rem;
     font-weight: 600;
     margin-bottom: 8px;
-    box-shadow: 0 2px 6px rgba(215,109,119,0.08);
+    box-shadow: 0 2px 6px rgba(215, 109, 119, 0.08);
     transition: background 0.2s, transform 0.15s;
 }
+
 .dat-hang-btn button:hover {
-    background: linear-gradient(90deg,#d76d77 50%, #3a1c71 100%);
+    background: linear-gradient(90deg, #d76d77 50%, #3a1c71 100%);
     color: #fff;
     transform: scale(1.04);
 }
-@media (max-width: 700px) {
-    .gio-hang-table th, .gio-hang-table td { font-size: 0.96rem; padding: 7px 2px;}
-    .tong-tien, .dat-hang-btn { font-size: 1rem;}
-    main { padding: 12px 2vw 18px 2vw; }
-}
-.logo-header {
-    text-align: center;
-    margin-bottom: 8px;
-}
-.logo-img {
-    height: 48px;
-    width: auto;
-    border-radius: 50%;
-    box-shadow: 0 2px 12px #fff4;
-}
-header h1 {
-    margin-top: 0;
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+    main {
+        padding: 18px 12px;
+    }
+
+    nav a {
+        margin: 0 8px;
+        padding: 5px 12px;
+    }
+    
+
+    .gio-hang-table th,
+    .gio-hang-table td {
+        font-size: 0.95rem;
+        padding: 8px 6px;
+    }
+
+    .dat-hang-btn {
+        text-align: center;
+    }
+
+    .dat-hang-btn button {
+        width: 100%;
+        padding: 12px 0;
+        font-size: 1rem;
+    }
 }

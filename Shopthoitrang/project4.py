@@ -3,7 +3,7 @@ import pyodbc
 import os
 from flask_cors import CORS
 import logging
-from datetime import datetime  # Import datetime từ module chuẩn
+from datetime import datetime
 import webbrowser
 
 # Cấu hình logging
@@ -41,51 +41,22 @@ def fetch_all(table):
         return []
 
 # Route để phục vụ các trang Shopthoitrang
-@app.route('/trang-chu/')
-def trang_chu():
-    return send_from_directory(os.path.join('Shopthoitrang', 'trang-chu'), 'trang-chu.html')
+@app.route('/Shopthoitrang/<path:path>')
+def serve_shopthoitrang(path):
+    return send_from_directory('Shopthoitrang', path)
 
-@app.route('/chi-tiet-san-pham/')
-def chi_tiet_san_pham():
-    return send_from_directory(os.path.join('Shopthoitrang', 'chi-tiet-san-pham'), 'chi-tiet-san-pham.html')
-
-@app.route('/gio-hang/')
-def gio_hang():
-    return send_from_directory(os.path.join('Shopthoitrang', 'gio-hang'), 'gio-hang.html')
-
-@app.route('/dat-hang/')
-def dat_hang():
-    return send_from_directory(os.path.join('Shopthoitrang', 'dat-hang'), 'dat-hang.html')
-
-@app.route('/lich-su-don-hang/')
-def lich_su_don_hang():
-    return send_from_directory(os.path.join('Shopthoitrang', 'lich-su-don-hang'), 'lich-su-don-hang.html')
-
-@app.route('/admin-thanhtoan/')
-def admin_thanhtoan():
-    return send_from_directory('.', 'admin-thanhtoan.html')
+@app.route('/admin/<path:path>')
+def serve_admin(path):
+    return send_from_directory('.', path)
 
 # Route để phục vụ CSS, JS, images từ Shopthoitrang
-@app.route('/css/<path:filename>')
+@app.route('/Shopthoitrang/css/<path:filename>')
 def serve_css(filename):
     return send_from_directory(os.path.join('Shopthoitrang', 'css'), filename)
 
-@app.route('/js/<path:filename>')
-def serve_js(filename):
-    return send_from_directory(os.path.join('Shopthoitrang', 'js'), filename)
-
-@app.route('/images/<path:filename>')
+@app.route('/Shopthoitrang/images/<path:filename>')
 def serve_images(filename):
     return send_from_directory(os.path.join('Shopthoitrang', 'images'), filename)
-
-# Route để phục vụ trang admin
-@app.route('/admin/')
-def admin():
-    return send_from_directory('.', 'admin.html')
-
-@app.route('/admin-products/')
-def admin_products():
-    return send_from_directory('.', 'admin-products.html')
 
 # API: Sản phẩm
 @app.route('/sanpham', methods=['GET'])
@@ -108,7 +79,7 @@ def add_sanpham():
                 os.makedirs(upload_folder, exist_ok=True)
                 file_path = os.path.join(upload_folder, file.filename)
                 file.save(file_path)
-                data['hinh_anh'] = f'/images/{file.filename}'
+                data['hinh_anh'] = f'/Shopthoitrang/images/{file.filename}'
         cursor = conn.cursor()
         sql = ("INSERT INTO SanPham (id_san_pham, ten_san_pham, gia, so_luong, hinh_anh, id_danh_muc) "
                "VALUES (?, ?, ?, ?, ?, ?)")
@@ -146,7 +117,7 @@ def update_sanpham(id_san_pham):
                 os.makedirs(upload_folder, exist_ok=True)
                 file_path = os.path.join(upload_folder, file.filename)
                 file.save(file_path)
-                data['hinh_anh'] = f'/images/{file.filename}'
+                data['hinh_anh'] = f'/Shopthoitrang/images/{file.filename}'
         cursor = conn.cursor()
         sql = ("UPDATE SanPham SET ten_san_pham = ?, gia = ?, so_luong = ?, hinh_anh = ?, id_danh_muc = ? "
                "WHERE id_san_pham = ?")
@@ -197,6 +168,22 @@ def delete_sanpham(id_san_pham):
         if 'cursor' in locals():
             cursor.close()
 
+@app.route('/sanpham/<int:id_san_pham>', methods=['GET'])
+def get_sanpham_by_id(id_san_pham):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM SanPham WHERE id_san_pham = ?", (id_san_pham,))
+        cols = [desc[0] for desc in cursor.description]
+        row = cursor.fetchone()
+        cursor.close()
+        if not row:
+            return jsonify({'error': 'Sản phẩm không tồn tại'}), 404
+        product = dict(zip(cols, row))
+        return jsonify(product)
+    except Exception as e:
+        logger.error(f"Lỗi API /sanpham/<id_san_pham> GET: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 # API: Danh mục
 @app.route('/danhmuc', methods=['GET'])
 def get_danhmuc():
@@ -231,7 +218,9 @@ def add_danhmuc():
     except Exception as e:
         logger.error(f"Lỗi API /danhmuc POST - General Error: {str(e)}")
         return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
-    
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
 
 @app.route('/danhmuc/<int:id_danh_muc>', methods=['DELETE'])
 def delete_danhmuc(id_danh_muc):
@@ -282,33 +271,29 @@ def get_donhang_by_id(id_don_hang):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/donhang', methods=['POST'])
-def add_donhang():
-    try:
-        data = request.get_json()
-        if not all(key in data for key in ['id_don_hang', 'id_khach_hang', 'tong_tien']):
-            return jsonify({'error': 'Thiếu thông tin bắt buộc (id_don_hang, id_khach_hang, tong_tien)'}), 400
+def create_don_hang():
+    data = request.get_json()
+    id_khach_hang = data.get('id_khach_hang')
+    tong_tien = data.get('tong_tien')
+    so_dien_thoai = data.get('so_dien_thoai')
+    ten_khach_hang = data.get('ten_khach_hang')
+    trang_thai = data.get('trang_thai', 'Chờ xử lý')
+    ngay_dat = data.get('ngay_dat')
 
+    if not all([id_khach_hang, tong_tien, so_dien_thoai, ten_khach_hang]):
+        return jsonify({'error': 'Thiếu thông tin yêu cầu'}), 400
+
+    try:
         cursor = conn.cursor()
-        sql = ("INSERT INTO DonHang (id_don_hang, ngay_dat, id_khach_hang, tong_tien, trang_thai) "
-               "VALUES (?, ?, ?, ?, ?)")
-        cursor.execute(sql, (
-            data.get('id_don_hang'),
-            datetime.now(),
-            data.get('id_khach_hang'),
-            data.get('tong_tien'),
-            data.get('trang_thai', 'Chờ xác nhận')
-        ))
+        cursor.execute("""
+            INSERT INTO DonHang (id_khach_hang, tong_tien, so_dien_thoai, ten_khach_hang, trang_thai, ngay_dat)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (id_khach_hang, tong_tien, so_dien_thoai, ten_khach_hang, trang_thai, ngay_dat))
         conn.commit()
-        cursor.close()
-        logger.info(f"Thêm đơn hàng thành công: ID {data.get('id_don_hang')}")
-        return jsonify({'message': 'Thêm đơn hàng thành công'}), 201
-    except pyodbc.Error as e:
-        logger.error(f"Lỗi API /donhang POST - SQL Error: {str(e)}")
-        conn.rollback()
-        return jsonify({'error': 'Lỗi khi thêm đơn hàng: ' + str(e)}), 500
+        return jsonify({'message': 'Đơn hàng đã được tạo'}), 201
     except Exception as e:
-        logger.error(f"Lỗi API /donhang POST - General Error: {str(e)}")
-        return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
     finally:
         if 'cursor' in locals():
             cursor.close()
@@ -539,55 +524,68 @@ def delete_giohang(id_khach_hang):
     finally:
         if 'cursor' in locals():
             cursor.close()
-            
+
 # API: Khách hàng
 @app.route('/khachhang', methods=['GET'])
 def get_khachhang():
     try:
         customers = fetch_all('KhachHang')
+        if not customers:
+            return jsonify({'message': 'Không có khách hàng nào'}), 200
         return jsonify(customers)
     except Exception as e:
         logger.error(f"Lỗi API /khachhang GET: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# GET /khachhang/<int:id_khach_hang>
 @app.route('/khachhang/<int:id_khach_hang>', methods=['GET'])
 def get_khachhang_by_id(id_khach_hang):
     try:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
-        cols = [desc[0] for desc in cursor.description]
-        row = cursor.fetchone()
-        cursor.close()
-        if not row:
-            return jsonify({'error': 'Khách hàng không tồn tại'}), 404
-        customer = dict(zip(cols, row))
-        return jsonify(customer)
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
+            row = cursor.fetchone()
+            if not row:
+                return jsonify({'error': 'Khách hàng không tồn tại'}), 404
+            cols = [desc[0] for desc in cursor.description]
+            customer = dict(zip(cols, row))
+            return jsonify(customer)
     except Exception as e:
         logger.error(f"Lỗi API /khachhang/<id_khach_hang> GET: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# POST /khachhang
 @app.route('/khachhang', methods=['POST'])
 def add_khachhang():
     try:
         data = request.get_json()
-        if not all(key in data for key in ['id_khach_hang', 'ten_khach_hang', 'so_dien_thoai', 'ngay_tao']):
-            return jsonify({'error': 'Thiếu thông tin bắt buộc (id_khach_hang, ten_khach_hang, so_dien_thoai, ngay_tao)'}), 400
+        if not all(key in data for key in ['ten_khach_hang', 'so_dien_thoai', 'email']):
+            return jsonify({'error': 'Thiếu thông tin bắt buộc (ten_khach_hang, so_dien_thoai, email)'}), 400
 
-        cursor = conn.cursor()
-        sql = ("INSERT INTO KhachHang (id_khach_hang, ten_khach_hang, so_dien_thoai, email, dia_chi, ngay_tao) "
-               "VALUES (?, ?, ?, ?, ?, ?)")
-        cursor.execute(sql, (
-            data.get('id_khach_hang'),
-            data.get('ten_khach_hang'),
-            data.get('so_dien_thoai'),
-            data.get('email', ''),
-            data.get('dia_chi', ''),
-            data.get('ngay_tao')
-        ))
-        conn.commit()
-        cursor.close()
-        logger.info(f"Thêm khách hàng thành công: ID {data.get('id_khach_hang')}")
-        return jsonify({'message': 'Thêm khách hàng thành công'}), 201
+        if not re.match(r'^\d{10}$', data.get('so_dien_thoai')):
+            return jsonify({'error': 'Số điện thoại phải là 10 chữ số!'}), 400
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', data.get('email')):
+            return jsonify({'error': 'Email không hợp lệ!'}), 400
+
+        with conn.cursor() as cursor:
+            sql = ("INSERT INTO KhachHang (ten_khach_hang, so_dien_thoai, email, dia_chi, ngay_tao) "
+                   "VALUES (?, ?, ?, ?, ?)")
+            cursor.execute(sql, (
+                data.get('ten_khach_hang'),
+                data.get('so_dien_thoai'),
+                data.get('email'),
+                data.get('dia_chi', ''),
+                datetime.now()
+            ))
+            conn.commit()
+
+            cursor.execute("SELECT SCOPE_IDENTITY() AS id_khach_hang")
+            new_id = cursor.fetchone()[0]
+
+        logger.info(f"Thêm khách hàng thành công: ID {new_id}")
+        return jsonify({
+            'message': 'Thêm khách hàng thành công',
+            'id_khach_hang': new_id
+        }), 201
     except pyodbc.Error as e:
         logger.error(f"Lỗi API /khachhang POST - SQL Error: {str(e)}")
         conn.rollback()
@@ -595,10 +593,8 @@ def add_khachhang():
     except Exception as e:
         logger.error(f"Lỗi API /khachhang POST - General Error: {str(e)}")
         return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
 
+# PUT /khachhang/<int:id_khach_hang>
 @app.route('/khachhang/<int:id_khach_hang>', methods=['PUT'])
 def update_khachhang(id_khach_hang):
     try:
@@ -606,20 +602,25 @@ def update_khachhang(id_khach_hang):
         if not all(key in data for key in ['ten_khach_hang', 'so_dien_thoai']):
             return jsonify({'error': 'Thiếu thông tin bắt buộc (ten_khach_hang, so_dien_thoai)'}), 400
 
-        cursor = conn.cursor()
-        sql = ("UPDATE KhachHang SET ten_khach_hang = ?, so_dien_thoai = ?, email = ?, dia_chi = ? "
-               "WHERE id_khach_hang = ?")
-        cursor.execute(sql, (
-            data.get('ten_khach_hang'),
-            data.get('so_dien_thoai'),
-            data.get('email', ''),
-            data.get('dia_chi', ''),
-            id_khach_hang
-        ))
-        if cursor.rowcount == 0:
-            return jsonify({'error': 'Khách hàng không tồn tại'}), 404
-        conn.commit()
-        cursor.close()
+        if not re.match(r'^\d{10}$', data.get('so_dien_thoai')):
+            return jsonify({'error': 'Số điện thoại phải là 10 chữ số!'}), 400
+        if 'email' in data and not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', data.get('email')):
+            return jsonify({'error': 'Email không hợp lệ!'}), 400
+
+        with conn.cursor() as cursor:
+            sql = ("UPDATE KhachHang SET ten_khach_hang = ?, so_dien_thoai = ?, email = ?, dia_chi = ? "
+                   "WHERE id_khach_hang = ?")
+            cursor.execute(sql, (
+                data.get('ten_khach_hang'),
+                data.get('so_dien_thoai'),
+                data.get('email', ''),
+                data.get('dia_chi', ''),
+                id_khach_hang
+            ))
+            if cursor.rowcount == 0:
+                return jsonify({'error': 'Khách hàng không tồn tại'}), 404
+            conn.commit()
+
         logger.info(f"Cập nhật khách hàng thành công: ID {id_khach_hang}")
         return jsonify({'message': 'Cập nhật khách hàng thành công'}), 200
     except pyodbc.Error as e:
@@ -629,19 +630,17 @@ def update_khachhang(id_khach_hang):
     except Exception as e:
         logger.error(f"Lỗi API /khachhang PUT - General Error: {str(e)}")
         return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
 
+# DELETE /khachhang/<int:id_khach_hang>
 @app.route('/khachhang/<int:id_khach_hang>', methods=['DELETE'])
 def delete_khachhang(id_khach_hang):
     try:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
-        if cursor.rowcount == 0:
-            return jsonify({'error': 'Khách hàng không tồn tại'}), 404
-        conn.commit()
-        cursor.close()
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
+            if cursor.rowcount == 0:
+                return jsonify({'error': 'Khách hàng không tồn tại'}), 404
+            conn.commit()
+
         logger.info(f"Xóa khách hàng thành công: ID {id_khach_hang}")
         return jsonify({'message': 'Xóa khách hàng thành công'}), 200
     except pyodbc.Error as e:
@@ -654,114 +653,62 @@ def delete_khachhang(id_khach_hang):
     finally:
         if 'cursor' in locals():
             cursor.close()
-# API: Thanh toán
-@app.route('/thanhtoan', methods=['GET'])
-def get_thanhtoan():
-    try:
-        payments = fetch_all('ThanhToan')
-        return jsonify(payments)
-    except Exception as e:
-        logger.error(f"Lỗi API /thanhtoan GET: {str(e)}")
-        return jsonify({'error': str(e)}), 500
 
-@app.route('/thanhtoan/<int:id_thanh_toan>', methods=['GET'])
-def get_thanhtoan_by_id(id_thanh_toan):
+# API: Đăng nhập
+@app.route('/login', methods=['POST'])
+def login():
     try:
+        data = request.get_json()
+        if not data or not all(key in data for key in ['ten_dang_nhap', 'mat_khau']):
+            logger.warning("Yêu cầu đăng nhập thiếu thông tin bắt buộc")
+            return jsonify({'error': 'Thiếu thông tin bắt buộc (ten_dang_nhap, mat_khau)'}), 400
+
+        ten_dang_nhap = data['ten_dang_nhap'].strip()
+        mat_khau = data['mat_khau'].strip()
+
+        # Kiểm tra đăng nhập khách hàng (dựa trên email và so_dien_thoai)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM ThanhToan WHERE id_thanh_toan = ?", (id_thanh_toan,))
-        cols = [desc[0] for desc in cursor.description]
+        cursor.execute("SELECT * FROM KhachHang WHERE email = ? AND so_dien_thoai = ?",
+                       (ten_dang_nhap, mat_khau))
         row = cursor.fetchone()
-        cursor.close()
-        if not row:
-            return jsonify({'error': 'Thông tin thanh toán không tồn tại'}), 404
-        payment = dict(zip(cols, row))
-        return jsonify(payment)
-    except Exception as e:
-        logger.error(f"Lỗi API /thanhtoan/<id_thanh_toan> GET: {str(e)}")
-        return jsonify({'error': str(e)}), 500
 
-@app.route('/thanhtoan', methods=['POST'])
-def add_thanhtoan():
-    try:
-        data = request.get_json()
-        if not all(key in data for key in ['id_thanh_toan', 'id_don_hang', 'id_khach_hang', 'so_tien']):
-            return jsonify({'error': 'Thiếu thông tin bắt buộc (id_thanh_toan, id_don_hang, id_khach_hang, so_tien)'}), 400
+        if row:
+            customer = dict(zip([desc[0] for desc in cursor.description], row))
+            logger.info(f"Đăng nhập khách hàng thành công: Email {ten_dang_nhap}, ID {customer['id_khach_hang']}")
+            return jsonify({
+                'message': 'Đăng nhập khách hàng thành công',
+                'id_khach_hang': customer['id_khach_hang'],
+                'ten_khach_hang': customer['ten_khach_hang'],
+                'redirect': '/Shopthoitrang/trang-chu.html'
+            }), 200
 
-        cursor = conn.cursor()
-        sql = ("INSERT INTO ThanhToan (id_thanh_toan, id_don_hang, id_khach_hang, so_tien, phuong_thuc, trang_thai, ngay_thanh_toan) "
-               "VALUES (?, ?, ?, ?, ?, ?, ?)")
-        cursor.execute(sql, (
-            data.get('id_thanh_toan'),
-            data.get('id_don_hang'),
-            data.get('id_khach_hang'),
-            data.get('so_tien'),
-            data.get('phuong_thuc', 'Chưa xác định'),
-            data.get('trang_thai', 'Chưa thanh toán'),
-            datetime.now()
-        ))
-        conn.commit()
-        cursor.close()
-        logger.info(f"Thêm thông tin thanh toán thành công: ID {data.get('id_thanh_toan')}")
-        return jsonify({'message': 'Thêm thông tin thanh toán thành công'}), 201
+        # Nếu không phải khách hàng, kiểm tra đăng nhập quản trị
+        cursor.execute("SELECT * FROM QuanTri WHERE Tai_khoan = ? AND Mat_khau = ?",
+                       (ten_dang_nhap, mat_khau))
+        row = cursor.fetchone()
+
+        if row:
+            admin = dict(zip([desc[0] for desc in cursor.description], row))
+            if admin['Trang_thai'] != 'Hoạt động':
+                logger.warning(f"Tài khoản bị khóa: {ten_dang_nhap}")
+                return jsonify({'error': 'Tài khoản bị khóa, vui lòng liên hệ quản trị viên'}), 403
+
+            logger.info(f"Đăng nhập quản trị thành công: Tài khoản {ten_dang_nhap}, ID {admin['id_quan_tri']}")
+            return jsonify({
+                'message': 'Đăng nhập quản trị thành công',
+                'id_quan_tri': admin['id_quan_tri'],
+                'tai_khoan': admin['Tai_khoan'],
+                'redirect': '/Shopthoitrang/admin.html'
+            }), 200
+        else:
+            logger.warning(f"Đăng nhập thất bại: {ten_dang_nhap} hoặc mật khẩu không đúng")
+            return jsonify({'error': 'Tên đăng nhập hoặc mật khẩu không đúng'}), 401
+
     except pyodbc.Error as e:
-        logger.error(f"Lỗi API /thanhtoan POST - SQL Error: {str(e)}")
-        conn.rollback()
-        return jsonify({'error': 'Lỗi khi thêm thông tin thanh toán: ' + str(e)}), 500
+        logger.error(f"Lỗi API /login POST - SQL Error: {str(e)} - Chi tiết: {e.args}")
+        return jsonify({'error': 'Lỗi kết nối cơ sở dữ liệu: ' + str(e)}), 500
     except Exception as e:
-        logger.error(f"Lỗi API /thanhtoan POST - General Error: {str(e)}")
-        return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
-
-@app.route('/thanhtoan/<int:id_thanh_toan>', methods=['PUT'])
-def update_thanhtoan(id_thanh_toan):
-    try:
-        data = request.get_json()
-        if not any(key in data for key in ['phuong_thuc', 'trang_thai']):
-            return jsonify({'error': 'Thiếu thông tin bắt buộc (phuong_thuc hoặc trang_thai)'}), 400
-
-        cursor = conn.cursor()
-        sql = "UPDATE ThanhToan SET phuong_thuc = ?, trang_thai = ? WHERE id_thanh_toan = ?"
-        cursor.execute(sql, (
-            data.get('phuong_thuc', ''),
-            data.get('trang_thai', ''),
-            id_thanh_toan
-        ))
-        if cursor.rowcount == 0:
-            return jsonify({'error': 'Thông tin thanh toán không tồn tại'}), 404
-        conn.commit()
-        cursor.close()
-        logger.info(f"Cập nhật thông tin thanh toán thành công: ID {id_thanh_toan}")
-        return jsonify({'message': 'Cập nhật thông tin thanh toán thành công'}), 200
-    except pyodbc.Error as e:
-        logger.error(f"Lỗi API /thanhtoan PUT - SQL Error: {str(e)}")
-        conn.rollback()
-        return jsonify({'error': 'Lỗi khi cập nhật thông tin thanh toán: ' + str(e)}), 500
-    except Exception as e:
-        logger.error(f"Lỗi API /thanhtoan PUT - General Error: {str(e)}")
-        return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
-
-@app.route('/thanhtoan/<int:id_thanh_toan>', methods=['DELETE'])
-def delete_thanhtoan(id_thanh_toan):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM ThanhToan WHERE id_thanh_toan = ?", (id_thanh_toan,))
-        if cursor.rowcount == 0:
-            return jsonify({'error': 'Thông tin thanh toán không tồn tại'}), 404
-        conn.commit()
-        cursor.close()
-        logger.info(f"Xóa thông tin thanh toán thành công: ID {id_thanh_toan}")
-        return jsonify({'message': 'Xóa thông tin thanh toán thành công'}), 200
-    except pyodbc.Error as e:
-        logger.error(f"Lỗi API /thanhtoan DELETE - SQL Error: {str(e)}")
-        conn.rollback()
-        return jsonify({'error': 'Lỗi khi xóa thông tin thanh toán: ' + str(e)}), 500
-    except Exception as e:
-        logger.error(f"Lỗi API /thanhtoan DELETE - General Error: {str(e)}")
+        logger.error(f"Lỗi API /login POST - Lỗi không xác định: {str(e)}")
         return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
     finally:
         if 'cursor' in locals():
@@ -770,8 +717,5 @@ def delete_thanhtoan(id_thanh_toan):
 if __name__ == '__main__':
     # Chạy server Flask
     port = 5000
-    url = f'http://127.0.0.1:{port}/Shopthoitrang/'  # Cập nhật URL để mở trang-chu.html
+    url = f'http://127.0.0.1:{port}/Shopthoitrang/trang-chu.html'  # Cập nhật URL để mở trang-chu.html
     app.run(debug=True, port=port)
-    # Tự động mở trình duyệt sau khi server khởi động
-    print(f"Mở trình duyệt tại: {url}")
-    webbrowser.open(url)

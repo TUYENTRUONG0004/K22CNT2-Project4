@@ -23,184 +23,190 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-md p-4">
       <nav class="space-y-4">
+        <a href="/Shopthoitrang/admin.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">MAIN</a>
         <a href="/Shopthoitrang/admin-products.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Sản phẩm</a>
         <a href="/Shopthoitrang/admin-danh-muc.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Danh mục</a>
         <a href="/Shopthoitrang/admin-khachhang.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Khách hàng</a>
-        <a href="/Shopthoitrang/admin-thanhtoan.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">Quản lý thanh toán</a>
         <a href="/Shopthoitrang/admin-lichsudonhang.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">Lịch sử đơn</a>
         <a href="/Shopthoitrang/trang-chu.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">Về trang chủ</a>
+      </nav>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 p-6">
-     <h2 class="text-3xl font-bold mb-6">Thêm/Chỉnh sửa Sản phẩm</h2>
-<div class="max-w-2xl mx-auto">
-  <form id="productForm" class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <input type="hidden" id="editId">
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">ID Sản phẩm</label>
-          <input type="text" id="id_san_pham" class="mt-1 p-2 w-full border rounded" required>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">Tên Sản phẩm</label>
-          <input type="text" id="ten_san_pham" class="mt-1 p-2 w-full border rounded" required>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">Giá</label>
-          <input type="number" id="gia" class="mt-1 p-2 w-full border rounded" required>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">Số lượng</label>
-          <input type="number" id="so_luong" class="mt-1 p-2 w-full border rounded" required>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">ID Danh mục</label>
-          <input type="number" id="id_danh_muc" class="mt-1 p-2 w-full border rounded" required>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">Hình ảnh</label>
-          <input type="file" id="hinh_anh" class="mt-1 p-2 w-full border rounded" accept="image/*">
-          <p id="currentImage" class="text-sm text-gray-500 mt-1"></p>
-        </div>
-        <button type="submit" id="submitButton" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Thêm sản phẩm</button>
-      </form>
+      <h2 class="text-3xl font-bold mb-6">Thêm/Chỉnh sửa Sản phẩm</h2>
+      <div class="max-w-2xl mx-auto">
+        <form id="productForm" class="bg-white shadow-md rounded-lg p-6 mb-8">
+          <input type="hidden" id="editId">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">ID Sản phẩm</label>
+            <input type="text" id="id_san_pham" class="mt-1 p-2 w-full border rounded" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Tên Sản phẩm</label>
+            <input type="text" id="ten_san_pham" class="mt-1 p-2 w-full border rounded" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Giá</label>
+            <input type="number" id="gia" class="mt-1 p-2 w-full border rounded" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Số lượng</label>
+            <input type="number" id="so_luong" class="mt-1 p-2 w-full border rounded" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">ID Danh mục</label>
+            <input type="number" id="id_danh_muc" class="mt-1 p-2 w-full border rounded" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Hình ảnh</label>
+            <input type="file" id="hinh_anh" class="mt-1 p-2 w-full border rounded" accept="image/*">
+            <p id="currentImage" class="text-sm text-gray-500 mt-1"></p>
+          </div>
+          <button type="submit" id="submitButton" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Thêm sản phẩm</button>
+        </form>
 
-      <h2 class="text-3xl font-bold mb-6">Danh sách Sản phẩm</h2>
-      <div class="bg-white shadow-md rounded-lg p-6">
-        <table class="w-full text-left">
-          <thead>
-            <tr>
-              <th class="p-2">ID</th>
-              <th class="p-2">Tên Sản phẩm</th>
-              <th class="p-2">Giá</th>
-              <th class="p-2">Số lượng</th>
-              <th class="p-2">Hình ảnh</th>
-              <th class="p-2">Danh mục</th>
-              <th class="p-2">Hành động</th>
-            </tr>
-          </thead>
-          <tbody id="productList">
-            <!-- Sản phẩm sẽ được thêm bằng JavaScript -->
-          </tbody>
-        </table>
-      </div>
-    </main>
-  </div>
-
-  <!-- Footer -->
-  <footer class="bg-black text-white py-4">
-    <div class="container mx-auto px-4 text-center">
-      <p>© 2025 DTN Shop. All rights reserved.</p>
+        <h2 class="text-3xl font-bold mb-6">Danh sách Sản phẩm</h2>
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <table class="w-full text-left">
+            <thead>
+              <tr>
+                <th class="p-2">ID</th>
+                <th class="p-2">Tên Sản phẩm</th>
+                <th class="p-2">Giá</th>
+                <th class="p-2">Số lượng</th>
+                <th class="p-2">Hình ảnh</th>
+                <th class="p-2">Danh mục</th>
+                <th class="p-2">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="productList">
+              <!-- Sản phẩm sẽ được thêm bằng JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-  </footer>
 
-  <!-- JavaScript -->
-  <script>
-    document.getElementById('productForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const editId = document.getElementById('editId').value;
-      const method = editId ? 'PUT' : 'POST';
-      const url = editId ? `http://127.0.0.1:5000/sanpham/${editId}` : 'http://127.0.0.1:5000/sanpham';
+    <!-- Footer -->
+    <footer class="bg-black text-white py-4">
+      <div class="container mx-auto px-4 text-center">
+        <p>© 2025 DTN Shop. All rights reserved.</p>
+      </div>
+    </footer>
 
-      const formData = new FormData();
-      formData.append('id_san_pham', document.getElementById('id_san_pham').value);
-      formData.append('ten_san_pham', document.getElementById('ten_san_pham').value);
-      formData.append('gia', document.getElementById('gia').value);
-      formData.append('so_luong', document.getElementById('so_luong').value);
-      formData.append('id_danh_muc', document.getElementById('id_danh_muc').value);
-      const fileInput = document.getElementById('hinh_anh');
-      if (fileInput.files[0]) {
-        formData.append('hinh_anh', fileInput.files[0]);
-      } else if (editId) {
-        formData.append('hinh_anh', document.getElementById('currentImage').dataset.current || '');
-      }
+    <!-- JavaScript -->
+    <script>
+      document.getElementById('productForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('editId').value;
+        const method = editId ? 'PUT' : 'POST';
+        const url = editId ? `http://127.0.0.1:5000/sanpham/${editId}` : 'http://127.0.0.1:5000/sanpham';
 
-      try {
-        const response = await fetch(url, {
-          method: method,
-          body: formData
-        });
-        const result = await response.json();
-        alert(result.message || `${method === 'PUT' ? 'Cập nhật' : 'Thêm'} sản phẩm thất bại`);
-        if (result.message) {
-          resetForm();
-          fetchProducts();
+        const formData = new FormData();
+        formData.append('id_san_pham', document.getElementById('id_san_pham').value);
+        formData.append('ten_san_pham', document.getElementById('ten_san_pham').value);
+        formData.append('gia', document.getElementById('gia').value);
+        formData.append('so_luong', document.getElementById('so_luong').value);
+        formData.append('id_danh_muc', document.getElementById('id_danh_muc').value);
+        const fileInput = document.getElementById('hinh_anh');
+        if (fileInput.files[0]) {
+          formData.append('hinh_anh', fileInput.files[0]);
+        } else if (editId) {
+          formData.append('hinh_anh', document.getElementById('currentImage').dataset.current || '');
         }
-      } catch (error) {
-        console.error('Lỗi:', error);
-        alert(`Có lỗi xảy ra khi ${method === 'PUT' ? 'cập nhật' : 'thêm'} sản phẩm`);
-      }
-    });
 
-    async function fetchProducts() {
-      try {
-        const response = await fetch('http://127.0.0.1:5000/sanpham');
-        if (!response.ok) throw new Error('Không thể lấy dữ liệu sản phẩm');
-        const products = await response.json();
-        const productList = document.getElementById('productList');
-        productList.innerHTML = '';
-        products.forEach(product => {
-          const row = `
-            <tr>
-              <td class="p-2">${product.id_san_pham}</td>
-              <td class="p-2">${product.ten_san_pham}</td>
-              <td class="p-2">${product.gia.toLocaleString('vi-VN')} VNĐ</td>
-              <td class="p-2">${product.so_luong}</td>
-              <td class="p-2"><img src="${product.hinh_anh || '/images/default.jpg'}" alt="${product.ten_san_pham}" class="w-16 h-16 object-cover"></td>
-              <td class="p-2">${product.id_danh_muc}</td>
-              <td class="p-2">
-                <button class="bg-yellow-500 text-white py-1 px-3 rounded hover:bg-yellow-600 mr-2" onclick="editProduct(${product.id_san_pham}, '${product.ten_san_pham}', ${product.gia}, ${product.so_luong}, '${product.hinh_anh || ''}', ${product.id_danh_muc})">Sửa</button>
-                <button class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600" onclick="deleteProduct(${product.id_san_pham})">Xóa</button>
-              </td>
-            </tr>`;
-          productList.innerHTML += row;
-        });
-      } catch (error) {
-        console.error('Lỗi khi lấy sản phẩm:', error);
-        document.getElementById('productList').innerHTML = '<tr><td colspan="7" class="text-center text-red-500">Lỗi khi tải sản phẩm.</td></tr>';
-      }
-    }
-
-    function editProduct(id, ten, gia, soLuong, hinhAnh, idDanhMuc) {
-      document.getElementById('editId').value = id;
-      document.getElementById('id_san_pham').value = id;
-      document.getElementById('ten_san_pham').value = ten;
-      document.getElementById('gia').value = gia;
-      document.getElementById('so_luong').value = soLuong;
-      document.getElementById('id_danh_muc').value = idDanhMuc;
-      document.getElementById('currentImage').textContent = hinhAnh ? `Ảnh hiện tại: ${hinhAnh}` : 'Không có ảnh';
-      document.getElementById('currentImage').dataset.current = hinhAnh || '';
-      document.getElementById('submitButton').textContent = 'Cập nhật sản phẩm';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function resetForm() {
-      document.getElementById('productForm').reset();
-      document.getElementById('editId').value = '';
-      document.getElementById('currentImage').textContent = '';
-      document.getElementById('currentImage').dataset.current = '';
-      document.getElementById('submitButton').textContent = 'Thêm sản phẩm';
-    }
-
-    async function deleteProduct(id) {
-      if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm ID ${id}?`)) {
         try {
-          const response = await fetch(`http://127.0.0.1:5000/sanpham/${id}`, {
-            method: 'DELETE'
+          const response = await fetch(url, {
+            method: method,
+            body: formData
           });
           const result = await response.json();
-          alert(result.message || 'Xóa sản phẩm thất bại');
-          if (result.message) {
+          if (response.ok) {
+            alert(result.message || `${method === 'PUT' ? 'Cập nhật' : 'Thêm'} sản phẩm thành công`);
+            resetForm();
             fetchProducts();
+          } else {
+            alert(`Lỗi từ server: ${result.error || 'Không xác định'}. Vui lòng kiểm tra console.`);
           }
         } catch (error) {
-          console.error('Lỗi:', error);
-          alert('Có lỗi xảy ra khi xóa sản phẩm');
+          console.error('Lỗi chi tiết:', error);
+          alert(` ${method === 'PUT' ? 'cập nhật' : 'thêm'} sản phẩm. Click "ok".`);
+        }
+      });
+
+      async function fetchProducts() {
+        try {
+          const response = await fetch('http://127.0.0.1:5000/sanpham');
+          if (!response.ok) throw new Error('Không thể lấy dữ liệu sản phẩm');
+          const products = await response.json();
+          const productList = document.getElementById('productList');
+          productList.innerHTML = '';
+          products.forEach(product => {
+            const row = `
+              <tr>
+                <td class="p-2">${product.id_san_pham}</td>
+                <td class="p-2">${product.ten_san_pham}</td>
+                <td class="p-2">${product.gia.toLocaleString('vi-VN')} VNĐ</td>
+                <td class="p-2">${product.so_luong}</td>
+                <td class="p-2"><img src="${product.hinh_anh || '/images/default.jpg'}" alt="${product.ten_san_pham}" class="w-16 h-16 object-cover"></td>
+                <td class="p-2">${product.id_danh_muc}</td>
+                <td class="p-2">
+                  <button class="bg-yellow-500 text-white py-1 px-3 rounded hover:bg-yellow-600 mr-2" onclick="editProduct(${product.id_san_pham}, '${product.ten_san_pham}', ${product.gia}, ${product.so_luong}, '${product.hinh_anh || ''}', ${product.id_danh_muc})">Sửa</button>
+                  <button class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600" onclick="deleteProduct(${product.id_san_pham})">Xóa</button>
+                </td>
+              </tr>`;
+            productList.innerHTML += row;
+          });
+        } catch (error) {
+          console.error('Lỗi khi lấy sản phẩm:', error);
+          document.getElementById('productList').innerHTML = '<tr><td colspan="7" class="text-center text-red-500">Lỗi khi tải sản phẩm.</td></tr>';
         }
       }
-    }
 
-    document.addEventListener('DOMContentLoaded', fetchProducts);
-  </script>
+      function editProduct(id, ten, gia, soLuong, hinhAnh, idDanhMuc) {
+        document.getElementById('editId').value = id;
+        document.getElementById('id_san_pham').value = id;
+        document.getElementById('ten_san_pham').value = ten;
+        document.getElementById('gia').value = gia;
+        document.getElementById('so_luong').value = soLuong;
+        document.getElementById('id_danh_muc').value = idDanhMuc;
+        document.getElementById('currentImage').textContent = hinhAnh ? `Ảnh hiện tại: ${hinhAnh}` : 'Không có ảnh';
+        document.getElementById('currentImage').dataset.current = hinhAnh || '';
+        document.getElementById('submitButton').textContent = 'Cập nhật sản phẩm';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function resetForm() {
+        document.getElementById('productForm').reset();
+        document.getElementById('editId').value = '';
+        document.getElementById('currentImage').textContent = '';
+        document.getElementById('currentImage').dataset.current = '';
+        document.getElementById('submitButton').textContent = 'Thêm sản phẩm';
+      }
+
+      async function deleteProduct(id) {
+        if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm ID ${id}?`)) {
+          try {
+            const response = await fetch(`http://127.0.0.1:5000/sanpham/${id}`, {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+            if (response.ok) {
+              alert(result.message || 'Xóa sản phẩm thành công');
+              fetchProducts(); // Làm mới danh sách
+            } else {
+              alert(`Lỗi từ server: ${result.error || 'Không xác định'}. Vui lòng kiểm tra console.`);
+            }
+          } catch (error) {
+            console.error('Lỗi chi tiết khi xóa:', error);
+            alert('Thông báo click "ok" và reload lại');
+          }
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', fetchProducts);
+    </script>
 </body>
 </html>

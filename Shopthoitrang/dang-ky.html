@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - DTN Shop</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 400px; }
+        h2 { text-align: center; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #message { text-align: center; color: red; margin-top: 10px; }
+        .toggle-btn { text-align: center; margin-top: 10px; }
+        .toggle-btn a { color: #28a745; text-decoration: none; }
+        .toggle-btn a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Đăng ký</h2>
+        <div class="form-group">
+            <label for="register-ten">Tên khách hàng:</label>
+            <input type="text" id="register-ten" required>
+        </div>
+        <div class="form-group">
+            <label for="register-so-dien-thoai">Số điện thoại:</label>
+            <input type="text" id="register-so-dien-thoai" required>
+        </div>
+        <div class="form-group">
+            <label for="register-email">Email:</label>
+            <input type="email" id="register-email" required>
+        </div>
+        <div class="form-group">
+            <label for="register-dia-chi">Địa chỉ:</label>
+            <input type="text" id="register-dia-chi">
+        </div>
+        <button onclick="dangKy()">Đăng ký</button>
+        <div class="toggle-btn">
+            <a href="/Shopthoitrang/dang-nhap.html">Đã có tài khoản? Đăng nhập</a>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        async function dangKy() {
+            const ten = document.getElementById('register-ten').value;
+            const soDienThoai = document.getElementById('register-so-dien-thoai').value;
+            const email = document.getElementById('register-email').value;
+            const diaChi = document.getElementById('register-dia-chi').value;
+
+            if (!ten || !soDienThoai || !email) {
+                document.getElementById('message').textContent = 'Vui lòng điền đầy đủ thông tin bắt buộc!';
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(soDienThoai)) {
+                document.getElementById('message').textContent = 'Số điện thoại phải là 10 chữ số!';
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.getElementById('message').textContent = 'Email không hợp lệ!';
+                return;
+            }
+
+            const khachHang = { ten_khach_hang: ten, so_dien_thoai: soDienThoai, email: email, dia_chi: diaChi };
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/khachhang', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(khachHang)
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('message').textContent = data.message;
+                    document.getElementById('register-ten').value = '';
+                    document.getElementById('register-so-dien-thoai').value = '';
+                    document.getElementById('register-email').value = '';
+                    document.getElementById('register-dia-chi').value = '';
+                    setTimeout(() => {
+                        window.location.href = '/Shopthoitrang/admin-khachhang.html';
+                    }, 1000);
+                } else {
+                    document.getElementById('message').textContent = data.error;
+                }
+            } catch (error) {
+                console.error('Lỗi API dangKy:', error);
+                document.getElementById('message').textContent = 'Lỗi khi đăng ký!';
+            }
+        }
+    </script>
+</body>
+</html>
