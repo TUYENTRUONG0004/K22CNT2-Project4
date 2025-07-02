@@ -35,7 +35,7 @@ GO
 
 -- Bảng khách hàng
 CREATE TABLE KhachHang (
-    id_khach_hang INT PRIMARY KEY,
+    id_khach_hang INT IDENTITY(1,1) PRIMARY KEY,
     ten_khach_hang NVARCHAR(255) NOT NULL,
     so_dien_thoai NVARCHAR(20) NOT NULL,
     email NVARCHAR(255),
@@ -60,7 +60,7 @@ GO
 
 -- Bảng đơn hàng
 CREATE TABLE DonHang (
-    id_don_hang INT PRIMARY KEY,
+    id_don_hang INT IDENTITY(1,1) PRIMARY KEY,
     ngay_dat DATETIME NOT NULL,
     id_khach_hang INT NOT NULL,
     tong_tien DECIMAL(10,2) NOT NULL,
@@ -105,22 +105,22 @@ INSERT INTO SanPham VALUES
 (3, N'Mũ bucket thời trang', 129000, 70, N'mu_bucket.jpg', 3);
 
 -- Bảng KhachHang
-INSERT INTO KhachHang VALUES 
-(1, N'Nguyễn Thị Hồng', N'0912345678', N'hongnguyen@gmail.com', N'Quận 1, TP.HCM', GETDATE()),
-(2, N'Lê Minh Tuấn', N'0938765432', N'tuanle@yahoo.com', N'Cầu Giấy, Hà Nội', GETDATE()),
-(3, N'Phạm Thảo Vy', N'0909123123', N'vypham@gmail.com', N'Hải Châu, Đà Nẵng', GETDATE());
+INSERT INTO KhachHang (ten_khach_hang, so_dien_thoai, email, dia_chi, ngay_tao) VALUES 
+(N'Nguyễn Thị Hồng', N'0912345678', N'hongnguyen@gmail.com', N'Quận 1, TP.HCM', GETDATE()),
+(N'Lê Minh Tuấn', N'0938765432', N'tuanle@yahoo.com', N'Cầu Giấy, Hà Nội', GETDATE()),
+(N'Phạm Thảo Vy', N'0909123123', N'vypham@gmail.com', N'Hải Châu, Đà Nẵng', GETDATE());
 
 -- Bảng GioHang
-INSERT INTO GioHang VALUES 
-(1, 1, 1, 2, GETDATE()),
-(2, 2, 2, 1, GETDATE()),
-(3, 3, 3, 3, GETDATE());
+INSERT INTO GioHang (id_khach_hang, id_san_pham, so_luong, ngay_them) VALUES 
+(1, 1, 2, GETDATE()),
+(2, 2, 1, GETDATE()); 
 
 -- Bảng DonHang
-INSERT INTO DonHang VALUES 
-(1, GETDATE(), 1, 398000, N'Đang xử lý'),
-(2, GETDATE(), 2, 359000, N'Đã giao'),
-(3, GETDATE(), 3, 387000, N'Đang giao');
+INSERT INTO DonHang (ngay_dat, id_khach_hang, tong_tien, trang_thai) VALUES 
+(GETDATE(), 1, 398000, N'Đang xử lý'),
+(GETDATE(), 2, 359000, N'Đã giao'),
+(GETDATE(), 3, 387000, N'Đang giao');
+
 
 -- Bảng ChiTietDonHang
 INSERT INTO ChiTietDonHang VALUES 
@@ -139,7 +139,6 @@ select * from DonHang;
 
 drop table QuanTri
 Drop table ChiTietDonHang
-drop table ThanhToan
 drop table GioHang
 Drop table KhachHang
 Drop table SanPham

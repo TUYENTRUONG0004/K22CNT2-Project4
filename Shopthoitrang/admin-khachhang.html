@@ -7,69 +7,46 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
-    <aside class="w-64 bg-white shadow-md h-auto min-h-screen">
-        <div class="p-6 border-b">
-            <h1 class="text-xl font-bold text-gray-800">DTN Shop</h1>
-            <p class="text-sm text-gray-500">Quản trị</p>
-        </div>
-        <nav class="mt-6 space-y-2 px-4">
-            <a href="/Shopthoitrang/admin-products.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Sản phẩm</a>
-            <a href="/Shopthoitrang/admin-danh-muc.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Danh mục</a>
-            <a href="/Shopthoitrang/admin-khachhang.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 font-semibold">Khách hàng</a>
-            <a href="#" id="manageOrdersLink" class="block py-2 px-4 rounded hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 font-semibold">Quản lý đơn hàng</a>
-            <a href="/Shopthoitrang/admin-lichsudonhang.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">Lịch sử đơn</a>
-            <a href="/Shopthoitrang/trang-chu.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">Về trang chủ</a>
-        </nav>
-    </aside>
-
-    <main class="flex-1 p-8">
-        <h2 class="text-3xl font-bold text-gray-900 mb-6">Quản lý Khách hàng</h2>
-
-        <!-- Form Thêm Khách hàng -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Thêm khách hàng mới</h3>
-            <form id="addCustomerForm" class="space-y-4">
-                <div class="form-group">
-                    <label for="ten_khach_hang" class="block text-sm font-medium text-gray-700">Tên khách hàng</label>
-                    <input type="text" id="ten_khach_hang" class="mt-1 p-2 w-full border rounded-lg" required>
-                </div>
-                <div class="form-group">
-                    <label for="so_dien_thoai" class="block text-sm font-medium text-gray-700">Số điện thoại</label>
-                    <input type="text" id="so_dien_thoai" class="mt-1 p-2 w-full border rounded-lg" required>
-                </div>
-                <div class="form-group">
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="email" class="mt-1 p-2 w-full border rounded-lg" required>
-                </div>
-                <div class="form-group">
-                    <label for="dia_chi" class="block text-sm font-medium text-gray-700">Địa chỉ</label>
-                    <input type="text" id="dia_chi" class="mt-1 p-2 w-full border rounded-lg">
-                </div>
-                <button type="submit" class="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Thêm khách hàng</button>
-            </form>
-            <p id="message" class="mt-2 text-center text-red-500"></p>
-        </div>
-
-        <!-- Danh sách khách hàng -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Danh sách khách hàng</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-left text-sm">
-                    <thead class="bg-gray-100 text-gray-600 uppercase tracking-wider">
-                        <tr>
-                            <th class="py-3 px-4">ID</th>
-                            <th class="py-3 px-4">Tên</th>
-                            <th class="py-3 px-4">Số điện thoại</th>
-                            <th class="py-3 px-4">Email</th>
-                            <th class="py-3 px-4">Ngày tạo</th>
-                            <th class="py-3 px-4">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customerTableBody" class="divide-y divide-gray-200"></tbody>
-                </table>
+    <div class="flex flex-row h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-md h-full">
+            <div class="p-6 border-b">
+                <h1 class="text-xl font-bold text-gray-800">DTN Shop</h1>
+                <p class="text-sm text-gray-500">Quản trị</p>
             </div>
-        </div>
-    </main>
+            <nav class="mt-6 space-y-2 px-4">
+                <a href="/Shopthoitrang/admin-products.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Sản phẩm</a>
+                <a href="/Shopthoitrang/admin-danh-muc.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-gray-700 font-medium">Danh mục</a>
+                <a href="/Shopthoitrang/admin-khachhang.html" class="block py-2 px-4 rounded hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 font-semibold">Khách hàng</a>
+                <a href="/Shopthoitrang/trang-chu.html" class="block py-2 px-4 mt-4 text-indigo-600 hover:text-indigo-800 font-semibold">Về trang chủ</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content (ngang hàng với sidebar) -->
+        <main class="flex-1 p-8 overflow-auto">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">Quản lý Khách hàng</h2>
+
+            <!-- Danh sách khách hàng -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Danh sách khách hàng</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-gray-100 text-gray-600 uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">ID</th>
+                                <th class="py-3 px-4">Tên</th>
+                                <th class="py-3 px-4">Số điện thoại</th>
+                                <th class="py-3 px-4">Email</th>
+                                <th class="py-3 px-4">Ngày tạo</th>
+                                <th class="py-3 px-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <footer class="bg-white border-t py-4 text-center text-sm text-gray-500">
         © 2025 DTN Shop. All rights reserved.
@@ -94,8 +71,8 @@
                     <input type="email" id="edit-email" class="mt-1 p-2 w-full border rounded-lg" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit-dia-chi" class="block text-sm font-medium text-gray-700">Địa chỉ</label>
-                    <input type="text" id="edit-dia-chi" class="mt-1 p-2 w-full border rounded-lg">
+                    <label for="edit-dia_chi" class="block text-sm font-medium text-gray-700">Địa chỉ</label>
+                    <input type="text" id="edit-dia_chi" class="mt-1 p-2 w-full border rounded-lg">
                 </div>
                 <button type="submit" class="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Lưu thay đổi</button>
                 <button type="button" class="w-full mt-2 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" onclick="closeModal()">Hủy</button>
@@ -106,21 +83,33 @@
     <script>
         async function fetchCustomers() {
             try {
-                const response = await fetch('http://127.0.0.1:5000/khachhang');
+                console.log('Gửi yêu cầu đến: http://127.0.0.1:5000/khachhang');
+                const response = await fetch('http://127.0.0.1:5000/khachhang', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                if (!response.ok) {
+                    throw new Error(`Lỗi HTTP! Mã trạng thái: ${response.status} - ${response.statusText}`);
+                }
                 const customers = await response.json();
+                console.log('Dữ liệu trả về từ API:', customers);
                 const tableBody = document.getElementById('customerTableBody');
                 tableBody.innerHTML = '';
+                if (!Array.isArray(customers) || customers.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="py-3 px-4 text-center text-gray-500">Không có khách hàng nào.</td></tr>';
+                    return;
+                }
                 customers.forEach(customer => {
                     const row = `
                         <tr class="hover:bg-gray-50">
-                            <td class="py-3 px-4">${customer.id_khach_hang}</td>
-                            <td class="py-3 px-4">${customer.ten_khach_hang}</td>
-                            <td class="py-3 px-4">${customer.so_dien_thoai}</td>
-                            <td class="py-3 px-4">${customer.email}</td>
-                            <td class="py-3 px-4">${new Date(customer.ngay_tao).toLocaleString('vi-VN')}</td>
+                            <td class="py-3 px-4">${customer.id_khach_hang || 'N/A'}</td>
+                            <td class="py-3 px-4">${customer.ten_khach_hang || 'N/A'}</td>
+                            <td class="py-3 px-4">${customer.so_dien_thoai || 'N/A'}</td>
+                            <td class="py-3 px-4">${customer.email || 'N/A'}</td>
+                            <td class="py-3 px-4">${customer.ngay_tao ? new Date(customer.ngay_tao).toLocaleString('vi-VN') : 'N/A'}</td>
                             <td class="py-3 px-4">
-                                <button class="edit-btn text-blue-500 hover:text-blue-700 mr-2" data-id="${customer.id_khach_hang}">Sửa</button>
-                                <button class="delete-btn text-red-500 hover:text-red-700" data-id="${customer.id_khach_hang}">Xóa</button>
+                                <button class="edit-btn text-blue-500 hover:text-blue-700 mr-2" data-id="${customer.id_khach_hang || ''}">Sửa</button>
+                                <button class="delete-btn text-red-500 hover:text-red-700" data-id="${customer.id_khach_hang || ''}">Xóa</button>
                             </td>
                         </tr>
                     `;
@@ -131,65 +120,31 @@
                 document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', deleteCustomer));
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách khách hàng:', error);
-                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="6" class="py-3 px-4 text-center text-red-500">Lỗi khi tải dữ liệu</td></tr>';
-            }
-        }
-
-        async function addCustomer(event) {
-            event.preventDefault();
-            const customer = {
-                ten_khach_hang: document.getElementById('ten_khach_hang').value,
-                so_dien_thoai: document.getElementById('so_dien_thoai').value,
-                email: document.getElementById('email').value,
-                dia_chi: document.getElementById('dia_chi').value
-            };
-
-            if (!/^[0-9]{10}$/.test(customer.so_dien_thoai)) {
-                document.getElementById('message').textContent = 'Số điện thoại phải là 10 chữ số!';
-                return;
-            }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
-                document.getElementById('message').textContent = 'Email không hợp lệ!';
-                return;
-            }
-
-            try {
-                const response = await fetch('http://127.0.0.1:5000/khachhang', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(customer)
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    document.getElementById('message').textContent = data.message;
-                    document.getElementById('addCustomerForm').reset();
-                    fetchCustomers();
-                } else {
-                    document.getElementById('message').textContent = data.error;
-                }
-            } catch (error) {
-                console.error('Lỗi khi thêm khách hàng:', error);
-                document.getElementById('message').textContent = 'Lỗi khi thêm khách hàng!';
+                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="6" class="py-3 px-4 text-center text-red-500">Lỗi khi tải dữ liệu: ' + error.message + '</td></tr>';
             }
         }
 
         async function editCustomer(e) {
             const id = e.target.getAttribute('data-id');
             try {
-                const response = await fetch(`http://127.0.0.1:5000/khachhang/${id}`);
-                const customer = await response.json();
-                if (response.ok) {
-                    document.getElementById('edit-id').value = customer.id_khach_hang;
-                    document.getElementById('edit-ten').value = customer.ten_khach_hang;
-                    document.getElementById('edit-so-dien-thoai').value = customer.so_dien_thoai;
-                    document.getElementById('edit-email').value = customer.email;
-                    document.getElementById('edit-dia-chi').value = customer.dia_chi || '';
-                    document.getElementById('editModal').classList.remove('hidden');
-                } else {
-                    alert(customer.error);
+                const response = await fetch(`http://127.0.0.1:5000/khachhang/${id}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                if (!response.ok) {
+                    throw new Error(`Lỗi HTTP! Mã trạng thái: ${response.status} - ${response.statusText}`);
                 }
+                const customer = await response.json();
+                console.log('Dữ liệu khách hàng để chỉnh sửa:', customer);
+                document.getElementById('edit-id').value = customer.id_khach_hang || '';
+                document.getElementById('edit-ten').value = customer.ten_khach_hang || '';
+                document.getElementById('edit-so-dien-thoai').value = customer.so_dien_thoai || '';
+                document.getElementById('edit-email').value = customer.email || '';
+                document.getElementById('edit-dia_chi').value = customer.dia_chi || '';
+                document.getElementById('editModal').classList.remove('hidden');
             } catch (error) {
                 console.error('Lỗi khi lấy thông tin khách hàng:', error);
+                alert('Lỗi khi lấy thông tin khách hàng: ' + error.message);
             }
         }
 
@@ -200,7 +155,7 @@
                 ten_khach_hang: document.getElementById('edit-ten').value,
                 so_dien_thoai: document.getElementById('edit-so-dien-thoai').value,
                 email: document.getElementById('edit-email').value,
-                dia_chi: document.getElementById('edit-dia-chi').value
+                dia_chi: document.getElementById('edit-dia_chi').value
             };
 
             if (!/^[0-9]{10}$/.test(customer.so_dien_thoai)) {
@@ -228,19 +183,25 @@
                 }
             } catch (error) {
                 console.error('Lỗi khi cập nhật khách hàng:', error);
+                alert('Lỗi khi cập nhật khách hàng!');
             }
         }
 
         async function deleteCustomer(e) {
             if (confirm('Bạn có chắc muốn xóa khách hàng này?')) {
                 const id = e.target.getAttribute('data-id');
-                const response = await fetch(`http://127.0.0.1:5000/khachhang/${id}`, {
-                    method: 'DELETE'
-                });
-                const data = await response.json();
-                alert(data.message);
-                if (response.ok) {
-                    fetchCustomers();
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/khachhang/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    alert(data.message);
+                    if (response.ok) {
+                        fetchCustomers();
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi xóa khách hàng:', error);
+                    alert('Lỗi khi xóa khách hàng!');
                 }
             }
         }
@@ -250,7 +211,6 @@
             document.getElementById('editCustomerForm').reset();
         }
 
-        document.getElementById('addCustomerForm').addEventListener('submit', addCustomer);
         document.getElementById('editCustomerForm').addEventListener('submit', updateCustomer);
         document.addEventListener('DOMContentLoaded', fetchCustomers);
     </script>

@@ -41,6 +41,7 @@ def fetch_all(table):
         return []
 
 # Route để phục vụ các trang Shopthoitrang
+
 @app.route('/Shopthoitrang/<path:path>')
 def serve_shopthoitrang(path):
     return send_from_directory('Shopthoitrang', path)
@@ -255,49 +256,69 @@ def get_donhang():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/donhang/<int:id_don_hang>', methods=['GET'])
-def get_donhang_by_id(id_don_hang):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM DonHang WHERE id_don_hang = ?", (id_don_hang,))
-        cols = [desc[0] for desc in cursor.description]
-        row = cursor.fetchone()
-        cursor.close()
-        if not row:
-            return jsonify({'error': 'Đơn hàng không tồn tại'}), 404
-        order = dict(zip(cols, row))
-        return jsonify(order)
-    except Exception as e:
-        logger.error(f"Lỗi API /donhang/<id_don_hang> GET: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+def get_don_hang_by_id(id_don_hang):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM DonHang WHERE id_don_hang = ?", (id_don_hang,))
+    row = cursor.fetchone()
+    if row:
+        keys = [column[0] for column in cursor.description]
+        return jsonify(dict(zip(keys, row)))
+    return jsonify({'error': 'Không tìm thấy đơn hàng'}), 404
 
 @app.route('/donhang', methods=['POST'])
 def create_don_hang():
-    data = request.get_json()
-    id_khach_hang = data.get('id_khach_hang')
-    tong_tien = data.get('tong_tien')
-    so_dien_thoai = data.get('so_dien_thoai')
-    ten_khach_hang = data.get('ten_khach_hang')
-    trang_thai = data.get('trang_thai', 'Chờ xử lý')
-    ngay_dat = data.get('ngay_dat')
-
-    if not all([id_khach_hang, tong_tien, so_dien_thoai, ten_khach_hang]):
-        return jsonify({'error': 'Thiếu thông tin yêu cầu'}), 400
-
+    cursor = None
     try:
+        data = request.get_json()
+        logger.info(f"Dữ liệu nhận từ client: {data}")
+
+        # Kiểm tra dữ liệu đầu vào
+        required_fields = ['id_khach_hang', 'tong_tien']
+        if not all(field in data for field in required_fields):
+            return jsonify({'error': 'Thiếu thông tin yêu cầu (id_khach_hang, tong_tien)'}), 400
+
+        try:
+            id_khach_hang = int(data['id_khach_hang'])
+            tong_tien = float(data['tong_tien'])
+        except (ValueError, TypeError):
+            return jsonify({'error': 'id_khach_hang và tong_tien phải là số'}), 400
+
+        trang_thai = data.get('trang_thai', 'Chờ xử lý')
+        ngay_dat = data.get('ngay_dat', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+        # Kiểm tra khách hàng tồn tại
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO DonHang (id_khach_hang, tong_tien, so_dien_thoai, ten_khach_hang, trang_thai, ngay_dat)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (id_khach_hang, tong_tien, so_dien_thoai, ten_khach_hang, trang_thai, ngay_dat))
+        cursor.execute("SELECT COUNT(*) FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
+        if cursor.fetchone()[0] == 0:
+            return jsonify({'error': 'Khách hàng không tồn tại'}), 404
+
+        # Thêm đơn hàng vào cơ sở dữ liệu
+        cursor.execute(
+            "INSERT INTO DonHang (ngay_dat, id_khach_hang, tong_tien, trang_thai) VALUES (?, ?, ?, ?)",
+            (ngay_dat, id_khach_hang, tong_tien, trang_thai)
+        )
         conn.commit()
-        return jsonify({'message': 'Đơn hàng đã được tạo'}), 201
-    except Exception as e:
+
+        # Lấy ID của đơn hàng vừa tạo
+        cursor.execute("SELECT SCOPE_IDENTITY()")
+        id_don_hang = cursor.fetchone()[0]
+
+        logger.info(f"Tạo đơn hàng thành công, ID: {id_don_hang}")
+        return jsonify({'message': 'Đơn hàng đã được tạo', 'id_don_hang': id_don_hang}), 201
+
+    except pyodbc.Error as e:
+        logger.error(f"Lỗi SQL khi tạo đơn hàng: {str(e)}")
         conn.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Lỗi khi tạo đơn hàng: {str(e)}'}), 500
+    except Exception as e:
+        logger.error(f"Lỗi không xác định khi tạo đơn hàng: {str(e)}")
+        return jsonify({'error': f'Lỗi không xác định: {str(e)}'}), 500
     finally:
         if 'cursor' in locals():
             cursor.close()
 
+
+            
 @app.route('/donhang/<int:id_don_hang>', methods=['PUT'])
 def update_donhang(id_don_hang):
     try:
@@ -346,7 +367,7 @@ def delete_donhang(id_don_hang):
     finally:
         if 'cursor' in locals():
             cursor.close()
-
+            
 # API: Chi tiết đơn hàng
 @app.route('/chitietdonhang', methods=['POST'])
 def add_chitiet():
@@ -529,118 +550,89 @@ def delete_giohang(id_khach_hang):
 @app.route('/khachhang', methods=['GET'])
 def get_khachhang():
     try:
-        customers = fetch_all('KhachHang')
-        if not customers:
-            return jsonify({'message': 'Không có khách hàng nào'}), 200
+        cursor = conn.cursor()
+        search_term = request.args.get('search', '').strip()
+        query = "SELECT * FROM KhachHang"
+        params = ()
+        if search_term:
+            query += " WHERE ten_khach_hang LIKE ? OR email LIKE ?"
+            params = ('%' + search_term + '%', '%' + search_term + '%')
+        cursor.execute(query, params)
+        cols = [desc[0] for desc in cursor.description]
+        customers = [dict(zip(cols, row)) for row in cursor.fetchall()]
+        cursor.close()
         return jsonify(customers)
     except Exception as e:
         logger.error(f"Lỗi API /khachhang GET: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# GET /khachhang/<int:id_khach_hang>
 @app.route('/khachhang/<int:id_khach_hang>', methods=['GET'])
 def get_khachhang_by_id(id_khach_hang):
     try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
-            row = cursor.fetchone()
-            if not row:
-                return jsonify({'error': 'Khách hàng không tồn tại'}), 404
-            cols = [desc[0] for desc in cursor.description]
-            customer = dict(zip(cols, row))
-            return jsonify(customer)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
+        cols = [desc[0] for desc in cursor.description]
+        row = cursor.fetchone()
+        cursor.close()
+        if not row:
+            return jsonify({'error': 'Khách hàng không tồn tại'}), 404
+        customer = dict(zip(cols, row))
+        return jsonify(customer)
     except Exception as e:
         logger.error(f"Lỗi API /khachhang/<id_khach_hang> GET: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
-# POST /khachhang
+    
 @app.route('/khachhang', methods=['POST'])
 def add_khachhang():
     try:
         data = request.get_json()
-        if not all(key in data for key in ['ten_khach_hang', 'so_dien_thoai', 'email']):
-            return jsonify({'error': 'Thiếu thông tin bắt buộc (ten_khach_hang, so_dien_thoai, email)'}), 400
 
-        if not re.match(r'^\d{10}$', data.get('so_dien_thoai')):
-            return jsonify({'error': 'Số điện thoại phải là 10 chữ số!'}), 400
-        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', data.get('email')):
-            return jsonify({'error': 'Email không hợp lệ!'}), 400
+        required_fields = ['ten_khach_hang', 'so_dien_thoai', 'email']
+        if not all(key in data for key in required_fields):
+            return jsonify({'error': 'Thiếu thông tin bắt buộc'}), 400
 
-        with conn.cursor() as cursor:
-            sql = ("INSERT INTO KhachHang (ten_khach_hang, so_dien_thoai, email, dia_chi, ngay_tao) "
-                   "VALUES (?, ?, ?, ?, ?)")
-            cursor.execute(sql, (
-                data.get('ten_khach_hang'),
-                data.get('so_dien_thoai'),
-                data.get('email'),
-                data.get('dia_chi', ''),
-                datetime.now()
-            ))
-            conn.commit()
+        cursor = conn.cursor()
 
-            cursor.execute("SELECT SCOPE_IDENTITY() AS id_khach_hang")
-            new_id = cursor.fetchone()[0]
+        # Kiểm tra trùng email hoặc sdt
+        cursor.execute("SELECT 1 FROM KhachHang WHERE so_dien_thoai = ? OR email = ?", (data['so_dien_thoai'], data['email']))
+        if cursor.fetchone():
+            return jsonify({'error': 'Số điện thoại hoặc email đã tồn tại'}), 400
 
-        logger.info(f"Thêm khách hàng thành công: ID {new_id}")
+        cursor.execute("""
+            INSERT INTO KhachHang (ten_khach_hang, so_dien_thoai, email, dia_chi, ngay_tao)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            data['ten_khach_hang'],
+            data['so_dien_thoai'],
+            data['email'],
+            data.get('dia_chi', ''),
+            datetime.now()
+        ))
+        conn.commit()
+
+        cursor.execute("SELECT SCOPE_IDENTITY()")
+        new_id = cursor.fetchone()[0]
+        cursor.close()
+
         return jsonify({
             'message': 'Thêm khách hàng thành công',
             'id_khach_hang': new_id
         }), 201
-    except pyodbc.Error as e:
-        logger.error(f"Lỗi API /khachhang POST - SQL Error: {str(e)}")
-        conn.rollback()
-        return jsonify({'error': 'Lỗi khi thêm khách hàng: ' + str(e)}), 500
+
     except Exception as e:
-        logger.error(f"Lỗi API /khachhang POST - General Error: {str(e)}")
-        return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
+        logger.error(f"Lỗi khi thêm khách hàng: {e}")
+        return jsonify({'error': 'Lỗi server'}), 500
 
-# PUT /khachhang/<int:id_khach_hang>
-@app.route('/khachhang/<int:id_khach_hang>', methods=['PUT'])
-def update_khachhang(id_khach_hang):
-    try:
-        data = request.get_json()
-        if not all(key in data for key in ['ten_khach_hang', 'so_dien_thoai']):
-            return jsonify({'error': 'Thiếu thông tin bắt buộc (ten_khach_hang, so_dien_thoai)'}), 400
 
-        if not re.match(r'^\d{10}$', data.get('so_dien_thoai')):
-            return jsonify({'error': 'Số điện thoại phải là 10 chữ số!'}), 400
-        if 'email' in data and not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', data.get('email')):
-            return jsonify({'error': 'Email không hợp lệ!'}), 400
-
-        with conn.cursor() as cursor:
-            sql = ("UPDATE KhachHang SET ten_khach_hang = ?, so_dien_thoai = ?, email = ?, dia_chi = ? "
-                   "WHERE id_khach_hang = ?")
-            cursor.execute(sql, (
-                data.get('ten_khach_hang'),
-                data.get('so_dien_thoai'),
-                data.get('email', ''),
-                data.get('dia_chi', ''),
-                id_khach_hang
-            ))
-            if cursor.rowcount == 0:
-                return jsonify({'error': 'Khách hàng không tồn tại'}), 404
-            conn.commit()
-
-        logger.info(f"Cập nhật khách hàng thành công: ID {id_khach_hang}")
-        return jsonify({'message': 'Cập nhật khách hàng thành công'}), 200
-    except pyodbc.Error as e:
-        logger.error(f"Lỗi API /khachhang PUT - SQL Error: {str(e)}")
-        conn.rollback()
-        return jsonify({'error': 'Lỗi khi cập nhật khách hàng: ' + str(e)}), 500
-    except Exception as e:
-        logger.error(f"Lỗi API /khachhang PUT - General Error: {str(e)}")
-        return jsonify({'error': 'Lỗi không xác định: ' + str(e)}), 500
-
-# DELETE /khachhang/<int:id_khach_hang>
 @app.route('/khachhang/<int:id_khach_hang>', methods=['DELETE'])
 def delete_khachhang(id_khach_hang):
     try:
-        with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
-            if cursor.rowcount == 0:
-                return jsonify({'error': 'Khách hàng không tồn tại'}), 404
-            conn.commit()
-
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM KhachHang WHERE id_khach_hang = ?", (id_khach_hang,))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Khách hàng không tồn tại'}), 404
+        conn.commit()
+        cursor.close()
         logger.info(f"Xóa khách hàng thành công: ID {id_khach_hang}")
         return jsonify({'message': 'Xóa khách hàng thành công'}), 200
     except pyodbc.Error as e:
