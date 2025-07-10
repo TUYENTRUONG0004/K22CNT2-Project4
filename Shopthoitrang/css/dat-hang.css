@@ -1,27 +1,157 @@
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f7f9fa; margin: 0; padding: 0;}
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f7f9fa;
+    margin: 0;
+    padding: 0;
+}
+
 header {
     background: linear-gradient(90deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%);
     color: #fff;
-    padding: 26px 0 10px 0;
+    padding: 30px 0;
     text-align: center;
-    margin-bottom: 18px; 
-    box-shadow: 0 2px 12px rgba(58,28,113,0.13);
+    margin-bottom: 20px; 
+    box-shadow: 0 4px 16px rgba(58, 28, 113, 0.2);
 }
-.logo-header { text-align: center; margin-bottom: 8px;}
-.logo-img { height: 48px; width: auto; border-radius: 50%; box-shadow: 0 2px 12px #fff4;}
-header h1 { margin: 0 0 8px 0; font-size: 2rem; letter-spacing: 2px; font-weight: bold;}
-nav a { color: #fff; text-decoration: none; margin: 0 16px; font-weight: 600; padding: 7px 18px; border-radius: 25px; transition: background 0.2s; display: inline-block;}
-nav a:hover { background: rgba(255,255,255,0.28); color: #3a1c71;}
-main { max-width: 600px; margin: 26px auto 0 auto; background: #fff; padding: 32px 24px 38px 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(120, 72, 178, 0.06);}
-h2 { color: #d76d77; margin-top: 0;}
-.tt-section { margin-bottom: 22px;}
-.tt-section label { display: block; margin-bottom: 11px; font-size: 1.04rem;}
-.tt-section input { width: 98%; padding: 7px 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px;}
-#sp-dat-hang { margin-bottom: 19px; }
-#sp-dat-hang table { width: 100%; border-collapse: collapse;}
-#sp-dat-hang th, #sp-dat-hang td { border-bottom: 1px solid #eee; padding: 10px 4px; text-align: center;}
-#sp-dat-hang img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover;}
-.tong-tien { font-size: 1.15rem; color: #d76d77; font-weight: bold; margin-bottom: 18px; text-align: right;}
-.dat-hang-btn { background: linear-gradient(90deg,#ffaf7b 60%, #d76d77 100%); color: #fff; border: none; padding: 12px 32px; border-radius: 22px; cursor: pointer; font-size: 1.08rem; font-weight: 600; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(215,109,119,0.08); transition: background 0.2s, transform 0.15s;}
-.dat-hang-btn:hover { background: linear-gradient(90deg,#d76d77 50%, #3a1c71 100%); color: #fff; transform: scale(1.04);}
-@media (max-width: 700px) { main { padding: 12px 2vw 18px 2vw; } }
+
+.logo-header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.logo-img {
+    height: 48px;
+    width: auto;
+    border-radius: 50%;
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.3);
+}
+
+header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 20px;
+    font-weight: 600;
+    padding: 10px 15px;
+    border-radius: 25px;
+    transition: background 0.3s, transform 0.2s;
+    display: inline-block;
+}
+
+nav a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #3a1c71;
+    transform: scale(1.05);
+}
+
+main {
+    max-width: 700px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(120, 72, 178, 0.1);
+}
+
+h2 {
+    color: #d76d77;
+    margin-top: 0;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.tt-section {
+    margin-bottom: 30px;
+}
+
+.tt-section label {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.tt-section input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s;
+}
+
+.tt-section input:focus {
+    border-color: #d76d77;
+    outline: none;
+}
+
+#sp-dat-hang {
+    margin-bottom: 20px;
+}
+
+#sp-dat-hang table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#sp-dat-hang th,
+#sp-dat-hang td {
+    border-bottom: 1px solid #eee;
+    padding: 12px 8px;
+    text-align: center;
+}
+
+#sp-dat-hang img {
+    width: 50px; 
+    height: 50px; 
+    border-radius: 6px; 
+    object-fit: cover;
+}
+
+.tong-tien {
+    font-size: 1.2rem;
+    color: #d76d77;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.dat-hang-btn {
+    background: linear-gradient(90deg, #ffaf7b 60%, #d76d77 100%);
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    border-radius: 22px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 8px rgba(215, 109, 119, 0.1);
+    transition: background 0.3s, transform 0.2s;
+}
+
+.dat-hang-btn:hover {
+    background: linear-gradient(90deg, #d76d77 50%, #3a1c71 100%);
+    transform: scale(1.05);
+}
+
+@media (max-width: 700px) {
+    main {
+        padding: 20px 15px;
+    }
+
+    nav a {
+        margin: 0 10px;
+    }
+
+    .dat-hang-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+}

@@ -3,96 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết đơn hàng - DTN Shop</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/chi-tiet-san-pham.css">
+    <title>Chi tiết sản phẩm - DTN Shop</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding-top: 20px; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 400px; }
+        h2 { text-align: center; margin-bottom: 20px; }
+        .product-detail { margin-bottom: 15px; }
+        .product-detail label { font-weight: bold; }
+        .product-detail span { margin-left: 10px; }
+        .back-btn { margin-top: 20px; }
+        button { width: 100%; padding: 10px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #5a6268; }
+        #message { text-align: center; color: red; margin-top: 10px; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <!-- Header -->
-    <header class="bg-black text-white">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold">DTN Shop</h1>
-            <nav class="space-x-4">
-                <a href="/Shopthoitrang/trang-chu.html" class="text-white hover:text-gray-200">Trang chủ</a> |
-                <a href="/Shopthoitrang/dat-hang.html" class="text-white hover:text-gray-200">Sản phẩm</a> |
-                <a href="/Shopthoitrang/gio-hang.html" class="text-white hover:text-gray-200">Giỏ hàng</a>
-            </nav>
-            <div class="space-x-4">
-                <a href="#" class="text-white hover:text-gray-200">Đăng nhập</a>
-                <a href="admin-products.html" class="text-white hover:text-gray-200">Quản trị</a>
-            </div>
+<body>
+    <div class="container">
+        <h2>Chi tiết sản phẩm</h2>
+        <div class="product-detail">
+            <label>Tên sản phẩm:</label><span id="ten-san-pham"></span>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <section class="container mx-auto px-4 py-8">
-        <div id="productDetail" class="bg-white shadow-md rounded-lg p-6 max-w-2xl mx-auto">
-            <h2 class="text-2xl font-bold mb-4">Chi tiết sản phẩm</h2>
-            <p id="detailMessage" class="text-red-500">Đang tải...</p>
+        <div class="product-detail">
+            <label>Giá:</label><span id="gia"></span> VNĐ
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-black text-white py-4 mt-8">
-        <div class="container mx-auto px-4 text-center">
-            <p>© 2025 DTN Shop. All rights reserved.</p>
+        <div class="product-detail">
+            <label>Số lượng tồn:</label><span id="so-luong"></span>
         </div>
-    </footer>
+        <div class="product-detail">
+            <label>Hình ảnh:</label><span id="hinh-anh"></span>
+        </div>
+        <div class="product-detail">
+            <label>Danh mục:</label><span id="id-danh-muc"></span>
+        </div>
+        <div class="back-btn">
+            <button onclick="goBack()">Quay về</button>
+        </div>
+        <div id="message"></div>
+    </div>
 
-    <!-- JavaScript -->
-    <script>
-        async function fetchProductDetail() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('id');
-            if (!productId) {
-                document.getElementById('detailMessage').textContent = 'Không tìm thấy ID sản phẩm.';
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://127.0.0.1:5000/sanpham/${productId}`);
-                if (!response.ok) throw new Error('Không thể lấy dữ liệu sản phẩm');
-                const product = await response.json();
-
-                const detailDiv = document.getElementById('productDetail');
-                detailDiv.innerHTML = `
-                    <img src="${product.hinh_anh || '/images/default.jpg'}" alt="${product.ten_san_pham}" class="w-full max-h-96 object-contain mb-4 rounded-md" onerror="this.src='/images/default.jpg';">
-                    <h3 class="text-xl font-semibold">${product.ten_san_pham}</h3>
-                    <p class="text-gray-600">Giá: ${product.gia.toLocaleString('vi-VN')} VNĐ</p>
-                    <p class="text-gray-600">Số lượng còn lại: ${product.so_luong}</p>
-                    <p class="text-gray-600">Danh mục: ${product.id_danh_muc}</p>
-                    <button class="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" onclick="addToCart(${product.id_san_pham}, 1)">Thêm vào giỏ</button>
-                `;
-            } catch (error) {
-                console.error('Lỗi khi lấy chi tiết sản phẩm:', error);
-                document.getElementById('detailMessage').textContent = 'Lỗi khi tải chi tiết sản phẩm.';
-            }
-        }
-
-        async function addToCart(productId, quantity) {
-            const cartItem = {
-                id_gio_hang: Date.now(),
-                id_khach_hang: 1,
-                id_san_pham: productId,
-                so_luong: quantity,
-                ngay_them: new Date().toISOString().split('T')[0]
-            };
-
-            try {
-                const response = await fetch('http://127.0.0.1:5000/giohang', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(cartItem)
-                });
-                const result = await response.json();
-                alert(result.message || 'Thêm vào giỏ hàng thất bại');
-            } catch (error) {
-                console.error('Lỗi:', error);
-                alert('Thêm vào giỏ hàng thất bại');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', fetchProductDetail);
+    <script src="js/chi-tiet-don-hang.js">
+        
     </script>
 </body>
 </html>

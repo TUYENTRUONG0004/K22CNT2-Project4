@@ -68,7 +68,8 @@ def get_sanpham():
     except Exception as e:
         logger.error(f"Lỗi API /sanpham GET: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
+    
+    
 @app.route('/sanpham', methods=['POST'])
 def add_sanpham():
     try:
